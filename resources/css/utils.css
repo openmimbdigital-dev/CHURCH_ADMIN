@@ -1,0 +1,72 @@
+:root {
+    --max: 18rem;
+    --width-menu-lateral: 255px;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.design-scrollbar::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+.design-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.design-scrollbar::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.design-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.text-xxs { font-size: 0.68rem; }
+.text-xxxs { font-size: 10px !important; }
+.text-11 { font-size: 11px !important; }
+
+.multiline-ellipsis {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.oneline-ellipsis {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.swal-confirm-button {
+    background-color: #0EA5E9 !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.swal-cancel-button {
+    background-color: #E02424 !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+@media print {
+    .hidden-print {
+        display: none !important;
+    }
+}

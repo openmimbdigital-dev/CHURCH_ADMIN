@@ -32,11 +32,25 @@
         class="min-h-screen flex"
         x-data="{
             sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true',
+            sectionNavOpen: JSON.parse(localStorage.getItem('sidebarSectionNavOpen') || '{}'),
+            sectionCollapsedOpen: null,
             toggleSidebar() {
                 this.sidebarCollapsed = !this.sidebarCollapsed;
                 localStorage.setItem('sidebarCollapsed', this.sidebarCollapsed);
+                this.sectionCollapsedOpen = null;
+            },
+            isSectionOpen(code) {
+                return this.sectionNavOpen[code] !== false;
+            },
+            toggleSectionNav(code) {
+                this.sectionNavOpen[code] = !this.isSectionOpen(code);
+                localStorage.setItem('sidebarSectionNavOpen', JSON.stringify(this.sectionNavOpen));
+            },
+            toggleSectionCollapsedMenu(code) {
+                this.sectionCollapsedOpen = this.sectionCollapsedOpen === code ? null : code;
             }
         }"
+        @keydown.escape.window="sectionCollapsedOpen = null"
     >
         <aside
             class="relative z-40 flex flex-col bg-slate-900 text-slate-100 shrink-0 border-r border-slate-800 transition-[width] duration-200 ease-out"
@@ -65,6 +79,8 @@
                     </svg>
                     <span class="truncate" x-show="!sidebarCollapsed" x-transition.opacity>Inicio</span>
                 </a>
+
+                @include('partials.sidebar-menu')
             </nav>
 
             <div class="p-2 border-t border-slate-800/80">

@@ -20,7 +20,7 @@ class MenuSeeder extends Seeder
                     [
                         'name' => 'Listar usuarios',
                         'code' => 'users.list',
-                        'url' => '#',
+                        'url' => '/admin/users',
                         'icon' => 'M4 6h16M4 10h16M4 14h16M4 18h16',
                         'sort_order' => 1,
                     ],

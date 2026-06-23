@@ -23,6 +23,7 @@
             @foreach ($section->activeItems as $item)
                 <a
                     href="{{ $item->url ?? '#' }}"
+                    @if(($item->url ?? '#') !== '#') wire:navigate @endif
                     @click="sectionCollapsedOpen = null"
                     class="flex items-center justify-center rounded-lg py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white transition"
                     title="{{ $item->name }}"
@@ -56,7 +57,9 @@
             @foreach ($section->activeItems as $item)
                 <a
                     href="{{ $item->url ?? '#' }}"
-                    class="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm transition text-slate-400 hover:bg-slate-800/60 hover:text-white"
+                    @if(($item->url ?? '#') !== '#') wire:navigate @endif
+                    class="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm transition
+                        {{ request()->fullUrlIs(url($item->url ?? '#')) || request()->is(ltrim($item->url ?? '#', '/')) ? 'bg-slate-800/90 text-white font-medium' : 'text-slate-400 hover:bg-slate-800/60 hover:text-white' }}"
                     title="{{ $item->name }}"
                 >
                     @if ($item->icon)

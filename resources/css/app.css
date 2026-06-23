@@ -59,6 +59,52 @@
     .btn-xl {
         @apply px-8 py-4 text-lg;
     }
+
+    /* Bordes corporativos — azul claro sky (primary-200) */
+    .section-corporate {
+        @apply overflow-hidden rounded-2xl border border-primary-200/80 bg-white shadow-sm;
+    }
+
+    .section-corporate-header {
+        @apply border-b border-primary-100 bg-primary-50/50 px-5 py-4;
+    }
+
+    .input-corporate {
+        @apply w-full min-h-11 rounded-xl border border-primary-200/80 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 transition;
+        @apply focus:border-primary-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-200/70;
+    }
+
+    .card-corporate {
+        @apply rounded-2xl border border-primary-200/80 bg-white shadow-sm;
+    }
+
+    .panel-corporate {
+        @apply overflow-hidden rounded-2xl border border-primary-200/80 bg-white shadow-sm;
+    }
+
+    .panel-corporate-header {
+        @apply border-b border-primary-100 bg-primary-50/50 px-5 py-4;
+    }
+}
+
+/* Datatable — tema corporativo */
+.datatable-corporate [class*='border-gray'],
+.datatable-corporate [class*='border-2'] {
+    border-color: color-mix(in srgb, var(--color-primary-200) 80%, transparent) !important;
+}
+
+.datatable-corporate [class*='divide-gray'] {
+    border-color: color-mix(in srgb, var(--color-primary-100) 90%, transparent) !important;
+}
+
+.datatable-corporate [class*='bg-gray-50'],
+.datatable-corporate [class*='bg-gray-100'] {
+    background-color: color-mix(in srgb, var(--color-primary-50) 70%, white) !important;
+}
+
+.datatable-corporate input[type='text'],
+.datatable-corporate select {
+    @apply border-primary-200/80 focus:border-primary-400 focus:ring-primary-200/60;
 }
 
 input[type="text"],

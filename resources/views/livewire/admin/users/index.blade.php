@@ -19,11 +19,11 @@
                 </p>
             </div>
             <div class="grid shrink-0 grid-cols-2 gap-3 sm:max-w-xs lg:self-center">
-                <div class="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-sm">
+                <div class="card-corporate p-4">
                     <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Total</p>
                     <p class="mt-2 text-3xl font-semibold tabular-nums text-slate-900">{{ $stats['total'] }}</p>
                 </div>
-                <div class="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-sm">
+                <div class="card-corporate p-4">
                     <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Activos</p>
                     <p class="mt-2 text-3xl font-semibold tabular-nums text-emerald-600">{{ $stats['active'] }}</p>
                 </div>
@@ -46,11 +46,11 @@
         </div>
     @endcan
 
-    <section class="overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm">
-        <div class="border-b border-slate-100 bg-slate-50/80 px-5 py-4">
+    <section class="panel-corporate">
+        <div class="panel-corporate-header">
             <h2 class="font-semibold text-slate-800">Usuarios registrados</h2>
         </div>
-        <div class="p-4">
+        <div class="datatable-corporate p-4">
             <livewire:admin.users.datatable-users />
         </div>
     </section>

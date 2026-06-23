@@ -2,11 +2,14 @@
 
 namespace App\Livewire\Admin\Users;
 
+use App\Actions\User\CreateOrUpdateUser;
+use App\Livewire\Forms\Users\UserForm;
 use App\Models\AdministrativeZone;
 use App\Models\Business;
 use App\Models\Church;
 use App\Models\User;
 use Illuminate\Support\Collection;
+use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -15,25 +18,7 @@ class Form extends Component
 {
     public ?User $user = null;
 
-    public string $username = '';
-
-    public string $first_name = '';
-
-    public string $last_name = '';
-
-    public string $email = '';
-
-    public string $password = '';
-
-    public ?string $phone_number = null;
-
-    public bool $status = true;
-
-    public ?int $business_id = null;
-
-    public ?int $administrative_zone_id = null;
-
-    public ?int $church_id = null;
+    public UserForm $userForm;
 
     /** @var Collection<int, Business> */
     public Collection $businesses;
@@ -65,7 +50,7 @@ class Form extends Component
             }
 
             $this->user = $user;
-            $this->fillFromUser($user);
+            $this->userForm->fillFromUser($user);
         } else {
             if (! $viewer->can('users.create')) {
                 abort(403);
@@ -77,55 +62,52 @@ class Form extends Component
             : collect();
 
         if (! $viewer->isSuperAdmin()) {
-            $this->business_id = $viewer->business_id;
+            $this->userForm->business_id = $viewer->business_id;
             $this->loadZones();
-        } elseif ($this->business_id) {
+        } elseif ($this->userForm->business_id) {
             $this->loadZones();
         }
 
-        if ($this->administrative_zone_id) {
+        if ($this->userForm->administrative_zone_id) {
             $this->loadChurches();
         }
     }
 
-    public function updatedBusinessId(): void
+    public function updatedUserFormBusinessId(): void
     {
-        $this->administrative_zone_id = null;
-        $this->church_id = null;
+        $this->userForm->administrative_zone_id = null;
+        $this->userForm->church_id = null;
         $this->loadZones();
         $this->churches = collect();
     }
 
-    public function updatedAdministrativeZoneId(): void
+    public function updatedUserFormAdministrativeZoneId(): void
     {
-        $this->church_id = null;
+        $this->userForm->church_id = null;
         $this->loadChurches();
     }
 
-    protected function fillFromUser(User $user): void
+    public function save(CreateOrUpdateUser $createOrUpdateUser): void
     {
-        $this->username = $user->username;
-        $this->first_name = $user->first_name;
-        $this->last_name = $user->last_name;
-        $this->email = $user->email;
-        $this->phone_number = $user->phone_number;
-        $this->status = (bool) $user->status;
-        $this->business_id = $user->business_id;
+        $validated = $this->userForm->validateFor($this->user, auth()->user());
 
-        $church = $user->ledChurches()->first();
-        if ($church) {
-            $this->church_id = $church->id;
-            $this->administrative_zone_id = $church->administrative_zone_id;
-        } else {
-            $zone = $user->ledAdministrativeZones()->first();
-            $this->administrative_zone_id = $zone?->id;
-        }
+        $createOrUpdateUser->handle($validated, $this->user, auth()->user());
+
+        LivewireAlert::title($this->user ? 'Usuario actualizado' : 'Usuario creado')
+            ->text($this->user
+                ? 'Los datos del usuario se guardaron correctamente.'
+                : 'El usuario fue registrado correctamente.')
+            ->success()
+            ->asToast()
+            ->show();
+
+        $this->redirect(route('admin.users.index'), navigate: true);
     }
 
     protected function resolvedBusinessId(): ?int
     {
         if (auth()->user()->isSuperAdmin()) {
-            return $this->business_id;
+            return $this->userForm->business_id;
         }
 
         return auth()->user()->business_id;
@@ -150,14 +132,14 @@ class Form extends Component
 
     protected function loadChurches(): void
     {
-        if (! $this->administrative_zone_id) {
+        if (! $this->userForm->administrative_zone_id) {
             $this->churches = collect();
 
             return;
         }
 
         $this->churches = Church::query()
-            ->where('administrative_zone_id', $this->administrative_zone_id)
+            ->where('administrative_zone_id', $this->userForm->administrative_zone_id)
             ->where('is_active', true)
             ->orderBy('name')
             ->get(['id', 'name']);

@@ -88,6 +88,7 @@ class DatatableUsers extends LivewireDatatable
             Column::callback(['id'], function ($id) {
                 return view('livewire.admin.users.actions', [
                     'id' => $id,
+                    'canEdit' => auth()->user()?->can('users.edit') ?? false,
                     'canDelete' => auth()->user()?->can('users.delete') ?? false,
                 ]);
             }, [], 'actions')

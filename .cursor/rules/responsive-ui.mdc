@@ -1,0 +1,36 @@
+---
+description: Todo el diseño UI debe ser responsive (móvil, tablet y escritorio)
+globs: resources/**/*.{blade.php,css,js}
+alwaysApply: true
+---
+
+# UI responsive
+
+Todo diseño UI debe funcionar bien en **móvil**, **tablet** y **escritorio**.
+
+## Enfoque mobile-first
+
+- Diseña primero para pantallas pequeñas y escala con breakpoints de Tailwind: `sm:`, `md:`, `lg:`, `xl:`.
+- Evita anchos fijos que rompan en móvil; usa `w-full`, `min-w-0`, `max-w-*` y contenedores fluidos.
+
+## Layout y espaciado
+
+- Usa `flex-col` en móvil y `md:flex-row` / `lg:flex-row` cuando haya espacio.
+- Grids: `grid-cols-1` → `sm:grid-cols-2` → `lg:grid-cols-3` (o el número que aplique).
+- Padding y gaps: más compactos en móvil (`p-4`, `gap-3`), más amplios en desktop (`lg:p-6`, `lg:gap-6`).
+
+## Tablas y datatables
+
+- Envuelve tablas en `overflow-x-auto` para scroll horizontal en pantallas pequeñas.
+- Oculta columnas secundarias en móvil con `hidden md:table-cell` cuando sea necesario.
+- Botones de acción: apilables o con iconos en móvil; texto completo en `sm:` o superior.
+
+## Tipografía y controles
+
+- Títulos: `text-xl` en móvil, `md:text-2xl` en desktop.
+- Botones e inputs: área táctil mínima ~44px de alto en móvil (`py-2.5`, `min-h-11`).
+- Evita hover como única forma de mostrar información crítica; debe ser usable en touch.
+
+## Verificación
+
+Antes de dar por terminada una vista, revisa mentalmente (o en devtools) estos anchos: **375px**, **768px**, **1280px**.

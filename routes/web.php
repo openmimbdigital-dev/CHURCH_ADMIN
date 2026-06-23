@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Livewire\Admin\Dashboard;
+use App\Livewire\Admin\Users\Form as AdminUsersForm;
 use App\Livewire\Admin\Users\Index as AdminUsersIndex;
 use Illuminate\Support\Facades\Route;
 
@@ -18,5 +19,13 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('permission:users.view')->group(function () {
         Route::get('/admin/users', AdminUsersIndex::class)->name('admin.users.index');
+    });
+
+    Route::middleware('permission:users.create')->group(function () {
+        Route::get('/admin/users/create', AdminUsersForm::class)->name('admin.users.create');
+    });
+
+    Route::middleware('permission:users.edit')->group(function () {
+        Route::get('/admin/users/{user}/edit', AdminUsersForm::class)->name('admin.users.edit');
     });
 });

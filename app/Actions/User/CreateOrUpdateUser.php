@@ -58,20 +58,22 @@ class CreateOrUpdateUser
         $user->ledChurches()->detach();
         $user->ledAdministrativeZones()->detach();
 
+        $zoneName = null;
+        $churchName = null;
+
         if ($churchId) {
             $church = Church::query()
+                ->with('administrativeZone')
                 ->whereKey($churchId)
                 ->when($businessId, fn ($q) => $q->where('business_id', $businessId))
                 ->first();
 
             if ($church) {
                 $user->ledChurches()->attach($church->id);
+                $churchName = $church->name;
+                $zoneName = $church->administrativeZone?->name;
             }
-
-            return;
-        }
-
-        if ($zoneId) {
+        } elseif ($zoneId) {
             $zone = AdministrativeZone::query()
                 ->whereKey($zoneId)
                 ->when($businessId, fn ($q) => $q->where('business_id', $businessId))
@@ -79,7 +81,13 @@ class CreateOrUpdateUser
 
             if ($zone) {
                 $user->ledAdministrativeZones()->attach($zone->id);
+                $zoneName = $zone->name;
             }
         }
+
+        $user->update([
+            'administrative_zone_name' => $zoneName,
+            'church_name' => $churchName,
+        ]);
     }
 }

@@ -38,16 +38,13 @@ class RolesAndPermissionsSeeder extends Seeder
         $maestro = Role::firstOrCreate(['name' => 'Maestro', 'guard_name' => $guard]);
         $coordinadorEducativo = Role::firstOrCreate(['name' => 'Coordinador educativo', 'guard_name' => $guard]);
 
-        $userPermissions = $perms->only([
-            'users.view', 'users.create', 'users.edit', 'users.delete',
-        ])->values();
-
         $pastorPermissions = $perms->only([
             'users.view', 'users.create', 'users.edit', 'users.delete',
             'education.view', 'education.create', 'education.edit',
             'members.view', 'members.create', 'members.edit',
             'reports.view',
             'settings.view',
+            'permissions.view', 'permissions.assign',
         ])->values();
 
         $superAdmin->syncPermissions($perms->values());
@@ -59,11 +56,15 @@ class RolesAndPermissionsSeeder extends Seeder
             'reports.view', 'reports.export',
             'settings.view',
             'roles.view',
+            'permissions.view', 'permissions.assign',
         ])->values());
 
         $pastor->syncPermissions($pastorPermissions);
         $presbitero->syncPermissions($pastorPermissions);
-        $coPastor->syncPermissions($userPermissions);
+        $coPastor->syncPermissions($perms->only([
+            'users.view', 'users.create', 'users.edit', 'users.delete',
+            'permissions.view', 'permissions.assign',
+        ])->values());
 
         $asistente->syncPermissions($perms->only([
             'users.view',

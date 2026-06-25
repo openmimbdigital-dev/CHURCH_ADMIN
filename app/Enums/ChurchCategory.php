@@ -16,4 +16,16 @@ enum ChurchCategory: string
             self::Hija => 'Hija',
         };
     }
+
+    public function requiresMotherChurch(): bool
+    {
+        return in_array($this, [self::Hija, self::CampoBlanco], true);
+    }
+
+    public static function requiresMotherChurchValue(?string $value): bool
+    {
+        $category = $value ? self::tryFrom($value) : null;
+
+        return $category?->requiresMotherChurch() ?? false;
+    }
 }

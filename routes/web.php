@@ -2,6 +2,9 @@
 
 use App\Http\Controllers\AuthController;
 use App\Livewire\Admin\Dashboard;
+use App\Livewire\Admin\Churches\Form as AdminChurchesForm;
+use App\Livewire\Admin\Churches\Index as AdminChurchesIndex;
+use App\Livewire\Admin\Churches\Show as AdminChurchesShow;
 use App\Livewire\Admin\Roles\Index as AdminRolesIndex;
 use App\Livewire\Admin\Users\Form as AdminUsersForm;
 use App\Livewire\Admin\Users\Index as AdminUsersIndex;
@@ -48,5 +51,18 @@ Route::middleware('auth')->group(function () {
     Route::middleware('permission:zones.view')->group(function () {
         Route::get('/admin/zones', AdminZonesIndex::class)->name('admin.zones.index');
         Route::get('/admin/zones/{zone}', AdminZonesShow::class)->name('admin.zones.show');
+    });
+
+    Route::middleware('permission:churches.create')->group(function () {
+        Route::get('/admin/churches/create', AdminChurchesForm::class)->name('admin.churches.create');
+    });
+
+    Route::middleware('permission:churches.edit')->group(function () {
+        Route::get('/admin/churches/{church}/edit', AdminChurchesForm::class)->name('admin.churches.edit');
+    });
+
+    Route::middleware('permission:churches.view')->group(function () {
+        Route::get('/admin/churches', AdminChurchesIndex::class)->name('admin.churches.index');
+        Route::get('/admin/churches/{church}', AdminChurchesShow::class)->name('admin.churches.show');
     });
 });

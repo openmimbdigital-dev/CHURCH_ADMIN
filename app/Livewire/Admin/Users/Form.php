@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Admin\Users;
 
-use App\Actions\User\CreateOrUpdateUser;
 use App\Livewire\Forms\Users\UserForm;
 use App\Models\AdministrativeZone;
 use App\Models\Business;
@@ -87,11 +86,9 @@ class Form extends Component
         $this->loadChurches();
     }
 
-    public function save(CreateOrUpdateUser $createOrUpdateUser): void
+    public function save(): void
     {
-        $validated = $this->userForm->validateFor($this->user, auth()->user());
-
-        $createOrUpdateUser->handle($validated, $this->user, auth()->user());
+        $this->userForm->save($this->user, auth()->user());
 
         LivewireAlert::title($this->user ? 'Usuario actualizado' : 'Usuario creado')
             ->text($this->user

@@ -56,6 +56,15 @@ return [
                 'permissions.assign' => 'Asignar permisos',
             ],
         ],
+        'zones' => [
+            'name' => 'Zonas administrativas',
+            'permissions' => [
+                'zones.view' => 'Ver zonas',
+                'zones.create' => 'Crear zonas',
+                'zones.edit' => 'Editar zonas',
+                'zones.delete' => 'Eliminar zonas',
+            ],
+        ],
     ],
 
     'roles' => [

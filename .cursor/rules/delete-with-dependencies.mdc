@@ -1,0 +1,72 @@
+---
+description: No eliminar registros en uso; deshabilitar botón de eliminar en UI
+globs: app/**/*.php,resources/views/**/*.blade.php
+alwaysApply: true
+---
+
+# Eliminación con dependencias
+
+Si un registro **está siendo utilizado** por otro (relación hija, asignación, FK lógica), **no se puede eliminar**.
+
+## Modelo
+
+Usar el trait `App\Models\Concerns\GuardsDeletionWhenReferenced` y definir `deletionBlockingRelations()`:
+
+```php
+protected function deletionBlockingRelations(): array
+{
+    return [
+        'churches' => 'iglesias',
+    ];
+}
+```
+
+Métodos disponibles:
+- `canBeDeleted(): bool`
+- `deletionBlockedReason(): ?string` — mensaje en español para tooltip y toast
+
+Reglas adicionales (protegidos, propio usuario, etc.) sobrescribir `deletionBlockedReason()` en el modelo.
+
+## Backend (Livewire / Action)
+
+Antes de eliminar, **siempre** validar en servidor:
+
+```php
+if ($reason = $model->deletionBlockedReason()) {
+    LivewireAlert::title('No se puede eliminar')
+        ->text($reason)
+        ->warning()
+        ->asToast()
+        ->show();
+    return;
+}
+```
+
+Nunca confiar solo en el botón deshabilitado de la UI.
+
+## UI — datatables y listados
+
+En la vista de acciones (`actions.blade.php`), pasar desde el datatable:
+
+- `canDelete` — permiso Spatie (`users.delete`, `zones.delete`, etc.)
+- `isDeletable` — `$model->canBeDeleted()`
+- `deleteBlockReason` — `$model->deletionBlockedReason()`
+
+Usar `<x-ui.delete-action-button>`:
+- Si `canDelete` y **no** `isDeletable` → botón **disabled** con `title` = razón
+- Si `canDelete` e `isDeletable` → botón activo con `wire:click`
+- Si no `canDelete` → no mostrar botón
+
+## Estilos del botón deshabilitado
+
+- Activo: `bg-rose-50 text-rose-600 hover:bg-rose-100`
+- Deshabilitado: `cursor-not-allowed bg-slate-100 text-slate-400 opacity-70`
+- Área táctil mínima: `min-h-9 min-w-9` (responsive-ui)
+
+## Nuevos módulos CRUD
+
+Al crear un módulo con eliminación:
+1. Definir dependencias en el modelo (trait o `deletionBlockedReason()`).
+2. Bloquear en el método `confirmed()` / `delete()` del Livewire.
+3. Pasar `isDeletable` y `deleteBlockReason` a la vista de acciones.
+4. Usar el componente `x-ui.delete-action-button`.

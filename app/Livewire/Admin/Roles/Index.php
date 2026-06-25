@@ -127,6 +127,16 @@ class Index extends Component
 
         $role = Role::withCount('users')->findOrFail($id);
 
+        if ($role->users_count > 0) {
+            LivewireAlert::title('No se puede eliminar')
+                ->text('No se puede eliminar: tiene usuarios asignados.')
+                ->warning()
+                ->asToast()
+                ->show();
+
+            return;
+        }
+
         LivewireAlert::title('Confirmar eliminación')
             ->text("¿Seguro que deseas eliminar el rol «{$role->name}»? Esta acción no se puede deshacer.")
             ->warning()
@@ -162,8 +172,8 @@ class Index extends Component
         }
 
         if ($role->users_count > 0) {
-            LivewireAlert::title('Rol en uso')
-                ->text("Este rol tiene {$role->users_count} usuario(s) asignado(s).")
+            LivewireAlert::title('No se puede eliminar')
+                ->text('No se puede eliminar: tiene usuarios asignados.')
                 ->warning()
                 ->asToast()
                 ->show();

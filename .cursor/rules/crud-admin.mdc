@@ -1,0 +1,175 @@
+---
+description: Convención CRUD admin — estructura, permisos, Form, Actions, UI
+globs: app/Livewire/**/*.php,app/Actions/**/*.php,app/Livewire/Forms/**/*.php,resources/views/livewire/admin/**/*.blade.php,routes/web.php,database/seeders/*
+alwaysApply: true
+---
+
+# CRUD admin — convención CHURCH_V1
+
+Usar **Users** y **Zonas** como referencia. Antes de implementar un CRUD nuevo, leer también:
+- `responsive-ui.mdc` — diseño mobile-first
+- `delete-with-dependencies.mdc` — eliminación con dependencias
+
+---
+
+## Estructura de archivos
+
+```
+app/Livewire/Admin/{Module}/
+  Index.php          → listado + stats
+  Form.php           → crear/editar (orquesta UI)
+  Show.php           → detalle (opcional)
+  Datatable{Module}.php
+
+app/Livewire/Forms/{Module}/
+  {Module}Form.php   → validación + save() llama al Action
+
+app/Actions/{Module}/
+  CreateOrUpdate{Module}.php  → lógica de persistencia / transacciones
+
+resources/views/livewire/admin/{module}/
+  index.blade.php
+  form.blade.php
+  show.blade.php   (opcional)
+  actions.blade.php
+```
+
+---
+
+## Rutas (`routes/web.php`)
+
+- Grupo `auth` → middleware `permission:{module}.{action}` por operación
+- Nombres: `admin.{module}.index|create|edit|show`
+- **Orden:** rutas fijas (`/create`) **antes** de rutas con parámetro (`/{model}`)
+
+```php
+Route::middleware('permission:zones.create')->group(function () {
+    Route::get('/admin/zones/create', AdminZonesForm::class)->name('admin.zones.create');
+});
+Route::middleware('permission:zones.edit')->group(function () {
+    Route::get('/admin/zones/{zone}/edit', AdminZonesForm::class)->name('admin.zones.edit');
+});
+Route::middleware('permission:zones.view')->group(function () {
+    Route::get('/admin/zones', AdminZonesIndex::class)->name('admin.zones.index');
+    Route::get('/admin/zones/{zone}', AdminZonesShow::class)->name('admin.zones.show');
+});
+```
+
+Registrar permisos en `RolesAndPermissionsSeeder` y `config/permissions.php`. Actualizar `MenuSeeder` con la URL real.
+
+---
+
+## Permisos y autorización
+
+| Capa | Responsabilidad |
+|------|-----------------|
+| Ruta | `permission:{module}.view\|create\|edit\|delete` |
+| `mount()` del componente | `abort(403)` si falta permiso o negocio |
+| Blade | `@can('{module}.create')` para botones |
+| Datatable | pasar `canEdit`, `canDelete` a `actions.blade.php` |
+
+**Scoping por negocio:**
+- `scopeVisibleToAuth()` e `isVisibleToAuthUser()` en el modelo
+- `superAdmin` ve todo; resto filtra por `business_id`
+- En formularios: `superAdmin` elige negocio; otros usan `auth()->user()->business_id`
+
+---
+
+## Livewire Form + Action (crear / editar)
+
+**El componente `Form` NO llama al Action directamente.** Solo orquesta UI.
+
+**El `Livewire\Form` valida y persiste:**
+
+```php
+// app/Livewire/Forms/Zones/ZoneForm.php
+public function save(?AdministrativeZone $zone, User $actor): AdministrativeZone
+{
+    $validated = $this->validateFor($zone, $actor);
+    return app(CreateOrUpdateZone::class)->handle($validated, $zone, $actor);
+}
+```
+
+```php
+// app/Livewire/Admin/Zones/Form.php
+public function save(): void
+{
+    $this->zoneForm->save($this->zone, auth()->user());
+
+    LivewireAlert::title(...)->success()->asToast()->show();
+    $this->redirect(route('admin.zones.index'), navigate: true);
+}
+```
+
+**Action** (`CreateOrUpdate*`): solo lógica de negocio y DB (`updateOrCreate`, relaciones, transacciones). Sin validación ni UI.
+
+**Form de Livewire debe incluir:**
+- `fillFrom{Model}()` para editar
+- `validateFor()` + `rules()` + `messages()` en español
+- `save()` que invoca el Action
+
+---
+
+## Index + Datatable
+
+- `Index`: stats, breadcrumb, botón crear (`@can`), embebe `<livewire:admin.{module}.datatable-{module} />`
+- `Datatable*`: extiende `Arm092\LivewireDatatables\Livewire\LivewireDatatable`
+- `builder()`: `Model::query()->visibleToAuth()->orderByDesc('id')`
+- Envolver en `panel-corporate` + `datatable-corporate` + `overflow-x-auto`
+- Columna acciones → `view('livewire.admin.{module}.actions', [...])`
+- Eliminar: **LivewireAlert** con `onConfirm('confirmed')` y clases `swal-church-*`
+- Escuchar refresco: `#[On('{module}-deleted')]` en Index si aplica
+
+---
+
+## Eliminar
+
+Seguir `delete-with-dependencies.mdc`:
+- Trait `GuardsDeletionWhenReferenced` en el modelo
+- `<x-ui.delete-action-button>` con `isDeletable` y `deleteBlockReason`
+- Validar de nuevo en `confirmed()` del datatable
+
+---
+
+## UI corporativa (blades)
+
+Contenedor: `relative mx-auto w-full max-w-[90rem]`
+
+| Clase | Uso |
+|-------|-----|
+| `section-corporate` / `section-corporate-header` | Secciones del formulario |
+| `input-corporate` | inputs y selects |
+| `card-corporate` | tarjetas de stats |
+| `panel-corporate` / `panel-corporate-header` | wrapper del datatable |
+| `datatable-corporate` | tema primary del datatable |
+
+Encabezado: `border-l-4 border-primary-500`, eyebrow `text-[11px] uppercase tracking-[0.2em]`, título `text-xl md:text-2xl`.
+
+Botones primarios: `min-h-11 rounded-xl bg-primary-600`. Footer formulario: `flex-col-reverse sm:flex-row sm:justify-end`.
+
+Componentes reutilizables: `<x-ui.switch>`, `<x-ui.delete-action-button>`.
+
+Layout Livewire: `#[Layout('layouts.app')]` + `#[Title('...')]` o `->title()` en `render()`.
+
+Notificaciones: **LivewireAlert** (no `dispatch('swal')` manual). Toasts con `->asToast()`.
+
+---
+
+## Checklist al crear un CRUD
+
+1. Permisos en seeder + `config/permissions.php`
+2. Rutas con middleware y orden correcto
+3. Modelo: `$fillable`, scopes `visibleToAuth`, trait de eliminación si aplica
+4. `CreateOrUpdate*` Action
+5. `{Module}Form` con `save()` → Action
+6. Componentes Livewire: Index, Form, Datatable, Show (si aplica)
+7. Vistas blade con estilos corporativos y responsive
+8. `actions.blade.php` con permisos y botón eliminar condicional
+9. Entrada en `MenuSeeder`
+10. Mensajes de validación en español
+
+---
+
+## Excepción: módulo Roles
+
+Roles usa un solo `Index` con modal (sin Form/Action separados) porque es gestión de Spatie Permission. El resto de módulos de negocio siguen el patrón Index + Form + Datatable.

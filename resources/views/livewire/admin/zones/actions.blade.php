@@ -1,9 +1,23 @@
 <div class="flex items-center justify-end gap-1">
+    @if ($canView)
+        <a
+            href="{{ route('admin.zones.show', $id) }}"
+            wire:navigate
+            title="Ver zona"
+            class="inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg bg-sky-50 text-sky-600 transition hover:bg-sky-100 hover:text-sky-700"
+        >
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+        </a>
+    @endif
+
     @if ($canEdit)
         <a
-            href="{{ route('admin.users.edit', $id) }}"
+            href="{{ route('admin.zones.edit', $id) }}"
             wire:navigate
-            title="Editar usuario"
+            title="Editar zona"
             class="inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 transition hover:bg-indigo-100 hover:text-indigo-700"
         >
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -14,15 +28,15 @@
 
     @if ($canDelete)
         <x-ui.delete-action-button
-            method="deleteUser"
+            method="deleteZone"
             :record-id="$id"
             :disabled="! ($isDeletable ?? true)"
             :disabled-reason="$deleteBlockReason ?? 'No se puede eliminar: el registro está en uso'"
-            title="Eliminar usuario"
+            title="Eliminar zona"
         />
     @endif
 
-    @if (! $canEdit && ! $canDelete)
+    @if (! $canView && ! $canEdit && ! $canDelete)
         <span class="text-xs text-slate-300" title="No disponible">—</span>
     @endif
 </div>

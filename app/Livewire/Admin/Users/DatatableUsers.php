@@ -104,10 +104,14 @@ class DatatableUsers extends LivewireDatatable
                 ->sortable(),
 
             Column::callback(['id'], function ($id) {
+                $user = User::query()->visibleToAuth()->find($id);
+
                 return view('livewire.admin.users.actions', [
                     'id' => $id,
                     'canEdit' => auth()->user()?->can('users.edit') ?? false,
                     'canDelete' => auth()->user()?->can('users.delete') ?? false,
+                    'isDeletable' => $user ? static::isUserDeletable($user) : false,
+                    'deleteBlockReason' => $user ? static::userDeleteBlockReason($user) : null,
                 ]);
             }, [], 'actions')
                 ->label('Acciones')
@@ -152,9 +156,9 @@ class DatatableUsers extends LivewireDatatable
         try {
             $user = $this->findAuthorizedUser($this->deleteId);
 
-            if (! $this->canDeleteUser($user)) {
+            if (! static::isUserDeletable($user)) {
                 LivewireAlert::title('No permitido')
-                    ->text('Este usuario no puede eliminarse.')
+                    ->text(static::userDeleteBlockReason($user) ?? 'Este usuario no puede eliminarse.')
                     ->warning()
                     ->asToast()
                     ->show();
@@ -182,23 +186,33 @@ class DatatableUsers extends LivewireDatatable
 
     protected function canDeleteUser(?User $user): bool
     {
-        if (! $user || ! auth()->user()->can('users.delete')) {
-            return false;
+        return static::isUserDeletable($user);
+    }
+
+    protected static function isUserDeletable(?User $user): bool
+    {
+        return blank(static::userDeleteBlockReason($user));
+    }
+
+    protected static function userDeleteBlockReason(?User $user): ?string
+    {
+        if (! $user || ! auth()->user()?->can('users.delete')) {
+            return 'No tienes permiso para eliminar usuarios.';
         }
 
         if (! $user->isVisibleToAuthUser()) {
-            return false;
+            return 'No tienes permiso para eliminar este usuario.';
         }
 
         if ($user->id === auth()->id()) {
-            return false;
+            return 'No puedes eliminar tu propio usuario.';
         }
 
         if ($user->hasRole('superAdmin')) {
-            return false;
+            return 'El usuario superAdmin no puede eliminarse.';
         }
 
-        return true;
+        return null;
     }
 
     protected function findAuthorizedUser(int $id): User

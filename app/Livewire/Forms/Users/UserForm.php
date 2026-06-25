@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Forms\Users;
 
+use App\Actions\User\CreateOrUpdateUser;
 use App\Models\User;
 use Illuminate\Validation\Rule;
 use Livewire\Form;
@@ -60,6 +61,13 @@ class UserForm extends Form
         }
 
         return $this->validate($this->rules($user, $actor));
+    }
+
+    public function save(?User $user, User $actor): User
+    {
+        $validated = $this->validateFor($user, $actor);
+
+        return app(CreateOrUpdateUser::class)->handle($validated, $user, $actor);
     }
 
     /**

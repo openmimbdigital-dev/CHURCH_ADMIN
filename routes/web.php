@@ -5,6 +5,9 @@ use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\Roles\Index as AdminRolesIndex;
 use App\Livewire\Admin\Users\Form as AdminUsersForm;
 use App\Livewire\Admin\Users\Index as AdminUsersIndex;
+use App\Livewire\Admin\Zones\Form as AdminZonesForm;
+use App\Livewire\Admin\Zones\Index as AdminZonesIndex;
+use App\Livewire\Admin\Zones\Show as AdminZonesShow;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route('login'));
@@ -32,5 +35,18 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('permission:roles.view')->group(function () {
         Route::get('/admin/roles', AdminRolesIndex::class)->name('admin.roles.index');
+    });
+
+    Route::middleware('permission:zones.create')->group(function () {
+        Route::get('/admin/zones/create', AdminZonesForm::class)->name('admin.zones.create');
+    });
+
+    Route::middleware('permission:zones.edit')->group(function () {
+        Route::get('/admin/zones/{zone}/edit', AdminZonesForm::class)->name('admin.zones.edit');
+    });
+
+    Route::middleware('permission:zones.view')->group(function () {
+        Route::get('/admin/zones', AdminZonesIndex::class)->name('admin.zones.index');
+        Route::get('/admin/zones/{zone}', AdminZonesShow::class)->name('admin.zones.show');
     });
 });

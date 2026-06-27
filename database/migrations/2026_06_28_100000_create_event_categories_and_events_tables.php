@@ -11,11 +11,16 @@ return new class extends Migration
     {
         Schema::create('event_categories', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('business_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('church_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->enum('type', array_column(EventCategoryType::cases(), 'value'));
             $table->boolean('active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
 
+            $table->index('business_id');
+            $table->index('church_id');
             $table->index('name');
             $table->index('type');
             $table->index('active');
@@ -23,14 +28,19 @@ return new class extends Migration
 
         Schema::create('events', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('event_category_id')->constrained();
+            $table->foreignId('business_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('church_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('event_category_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->date('date');
             $table->time('start_time');
             $table->time('end_time');
             $table->boolean('active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
 
+            $table->index('business_id');
+            $table->index('church_id');
             $table->index('event_category_id');
             $table->index('date');
             $table->index('name');

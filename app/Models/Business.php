@@ -56,6 +56,16 @@ class Business extends Model
         return $this->hasMany(Church::class);
     }
 
+    public function eventCategories(): HasMany
+    {
+        return $this->hasMany(EventCategory::class);
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(Event::class);
+    }
+
     public function leaders(): MorphToMany
     {
         return $this->morphToMany(User::class, 'leadable', 'leadables')

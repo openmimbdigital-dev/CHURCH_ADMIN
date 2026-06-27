@@ -116,6 +116,16 @@ class Church extends Model
         return $this->hasMany(Church::class, 'parent_id');
     }
 
+    public function eventCategories(): HasMany
+    {
+        return $this->hasMany(EventCategory::class);
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(Event::class);
+    }
+
     public function isPrincipal(): bool
     {
         return $this->category === ChurchCategory::Principal;

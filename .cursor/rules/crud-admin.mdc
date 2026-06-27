@@ -73,6 +73,13 @@ Registrar permisos en `RolesAndPermissionsSeeder` y `config/permissions.php`. Ac
 - `superAdmin` ve todo; resto filtra por `business_id`
 - En formularios: `superAdmin` elige negocio; otros usan `auth()->user()->business_id`
 
+**Soft delete (obligatorio en modelos de negocio):**
+- En **toda migración de tabla de negocio**: `$table->softDeletes();` junto a `timestamps()`
+- En **todo modelo Eloquent de negocio**: `use SoftDeletes;`
+- No usar `forceDelete()` en CRUD admin salvo requisito explícito; `$model->delete()` debe ser soft delete
+- En reglas `unique` / `exists` de formularios: filtrar con `->whereNull('deleted_at')` cuando aplique
+- El datatable lista solo registros no eliminados por defecto (Eloquent excluye soft deleted automáticamente)
+
 ---
 
 ## Livewire Form + Action (crear / editar)
@@ -159,7 +166,7 @@ Notificaciones: **LivewireAlert** (no `dispatch('swal')` manual). Toasts con `->
 
 1. Permisos en seeder + `config/permissions.php`
 2. Rutas con middleware y orden correcto
-3. Modelo: `$fillable`, scopes `visibleToAuth`, trait de eliminación si aplica
+3. Modelo: `$fillable`, `use SoftDeletes`, scopes `visibleToAuth`, trait de eliminación si aplica
 4. `CreateOrUpdate*` Action
 5. `{Module}Form` con `save()` → Action
 6. Componentes Livewire: Index, Form, Datatable, Show (si aplica)

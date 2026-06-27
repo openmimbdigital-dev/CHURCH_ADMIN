@@ -149,7 +149,7 @@
                                     ])>
                                         <input
                                             type="checkbox"
-                                            wire:model="userForm.church_ids"
+                                            wire:model.live="userForm.church_ids"
                                             value="{{ $church->id }}"
                                             class="h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                                         >
@@ -160,6 +160,29 @@
                         @endif
                         @error('userForm.church_ids') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
                         @error('userForm.church_ids.*') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
+
+                        @if (count($userForm->church_ids) > 1)
+                            <div class="mt-5 rounded-xl border border-primary-100 bg-primary-50/40 p-4">
+                                <label for="default_church_id" class="{{ $labelClass }}">
+                                    Iglesia predeterminada al iniciar sesión <span class="text-rose-500">*</span>
+                                </label>
+                                <p class="mb-3 text-xs leading-relaxed text-slate-600">
+                                    Este usuario está asignado a más de una iglesia. Indica cuál debe quedar activa por defecto cuando inicie sesión.
+                                    El sistema guardará esa iglesia en el contexto del usuario y la zona administrativa correspondiente.
+                                </p>
+                                <select id="default_church_id" wire:model="userForm.default_church_id" class="input-corporate">
+                                    <option value="">Selecciona la iglesia predeterminada</option>
+                                    @foreach ($churches->whereIn('id', $userForm->church_ids) as $church)
+                                        <option value="{{ $church->id }}">{{ $church->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('userForm.default_church_id') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
+                            </div>
+                        @elseif (count($userForm->church_ids) === 1)
+                            <p class="mt-4 text-xs leading-relaxed text-slate-500">
+                                Al tener una sola iglesia asignada, se usará automáticamente como contexto predeterminado al iniciar sesión.
+                            </p>
+                        @endif
                     </div>
                 @endif
             </div>

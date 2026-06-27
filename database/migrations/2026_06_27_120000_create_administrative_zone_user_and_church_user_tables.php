@@ -12,20 +12,24 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('administrative_zone_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('current_zone')->nullable()->constrained('administrative_zones')->nullOnDelete();
             $table->timestamps();
 
             $table->unique(['user_id', 'administrative_zone_id']);
             $table->index('administrative_zone_id');
+            $table->index('current_zone');
         });
 
         Schema::create('church_user', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('church_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('current_church')->nullable()->constrained('churches')->nullOnDelete();
             $table->timestamps();
 
             $table->unique(['user_id', 'church_id']);
             $table->index('church_id');
+            $table->index('current_church');
         });
     }
 

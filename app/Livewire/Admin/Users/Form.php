@@ -76,6 +76,7 @@ class Form extends Component
     {
         $this->userForm->administrative_zone_id = null;
         $this->userForm->church_ids = [];
+        $this->userForm->default_church_id = null;
         $this->loadZones();
         $this->churches = collect();
     }
@@ -83,7 +84,13 @@ class Form extends Component
     public function updatedUserFormAdministrativeZoneId(): void
     {
         $this->userForm->church_ids = [];
+        $this->userForm->default_church_id = null;
         $this->loadChurches();
+    }
+
+    public function updatedUserFormChurchIds(): void
+    {
+        $this->userForm->normalizeDefaultChurchId();
     }
 
     public function save(): void

@@ -14,6 +14,7 @@ class AdministrativeZoneUser extends Pivot
     protected $fillable = [
         'user_id',
         'administrative_zone_id',
+        'current_zone',
     ];
 
     public function user(): BelongsTo

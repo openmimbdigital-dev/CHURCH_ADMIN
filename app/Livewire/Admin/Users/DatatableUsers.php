@@ -67,7 +67,7 @@ class DatatableUsers extends LivewireDatatable
 
             Column::callback(['id'], function ($id) {
                 $user = User::query()->visibleToAuth()->find($id);
-                $role = $user?->getRoleNames()->first();
+                $role = $user?->roleLabelForViewer();
 
                 return $role
                     ? '<span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700 ring-1 ring-indigo-600/20">'.e($role).'</span>'
@@ -95,6 +95,7 @@ class DatatableUsers extends LivewireDatatable
 
                 return view('livewire.admin.users.actions', [
                     'id' => $id,
+                    'canView' => auth()->user()?->can('users.view') ?? false,
                     'canEdit' => auth()->user()?->can('users.edit') ?? false,
                     'canDelete' => auth()->user()?->can('users.delete') ?? false,
                     'isDeletable' => $user ? static::isUserDeletable($user) : false,

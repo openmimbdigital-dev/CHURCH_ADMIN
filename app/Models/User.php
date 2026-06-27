@@ -56,6 +56,11 @@ class User extends Authenticatable
         return $this->hasRole('superAdmin');
     }
 
+    public function isPresbitero(): bool
+    {
+        return $this->hasRole('Presbitero');
+    }
+
     public function scopeVisibleToAuth(Builder $query, ?User $viewer = null): Builder
     {
         $viewer ??= auth()->user();
@@ -68,7 +73,15 @@ class User extends Authenticatable
             return $query->whereRaw('1 = 0');
         }
 
-        return $query->where('business_id', $viewer->business_id);
+        $query->where('business_id', $viewer->business_id);
+
+        $query->whereDoesntHave('roles', fn (Builder $roleQuery) => $roleQuery->where('name', 'superAdmin'));
+
+        if (! $viewer->isPresbitero()) {
+            $query->whereDoesntHave('roles', fn (Builder $roleQuery) => $roleQuery->where('name', 'Presbitero'));
+        }
+
+        return $query;
     }
 
     public function isVisibleToAuthUser(?User $viewer = null): bool
@@ -79,11 +92,35 @@ class User extends Authenticatable
             return true;
         }
 
-        if (! $viewer?->business_id) {
+        if (! $viewer?->business_id || $this->business_id !== $viewer->business_id) {
             return false;
         }
 
-        return $this->business_id === $viewer->business_id;
+        if ($this->isSuperAdmin()) {
+            return false;
+        }
+
+        if ($this->isPresbitero() && ! $viewer->isPresbitero()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function roleLabelForViewer(?User $viewer = null): ?string
+    {
+        $viewer ??= auth()->user();
+        $role = $this->getRoleNames()->first();
+
+        if (! $role) {
+            return null;
+        }
+
+        if ($role === 'superAdmin' && ! $viewer?->isSuperAdmin()) {
+            return null;
+        }
+
+        return $role;
     }
 
     public function business(): BelongsTo
@@ -95,6 +132,7 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(AdministrativeZone::class)
             ->using(AdministrativeZoneUser::class)
+            ->withPivot('current_zone')
             ->withTimestamps();
     }
 
@@ -102,6 +140,7 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Church::class)
             ->using(ChurchUser::class)
+            ->withPivot('current_church')
             ->withTimestamps();
     }
 

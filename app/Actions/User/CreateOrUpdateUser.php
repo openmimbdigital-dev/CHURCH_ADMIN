@@ -42,6 +42,7 @@ class CreateOrUpdateUser
                 $savedUser,
                 isset($data['administrative_zone_id']) ? (int) $data['administrative_zone_id'] : null,
                 $data['church_ids'] ?? [],
+                isset($data['default_church_id']) ? (int) $data['default_church_id'] : null,
                 $businessId
             );
 
@@ -56,6 +57,7 @@ class CreateOrUpdateUser
         User $user,
         ?int $zoneId,
         array $churchIds,
+        ?int $defaultChurchId,
         ?int $businessId
     ): void {
         if ($zoneId) {
@@ -65,12 +67,23 @@ class CreateOrUpdateUser
                 ->where('is_active', true)
                 ->exists();
 
-            $user->administrativeZones()->sync($zoneExists ? [$zoneId] : []);
+            if (! $zoneExists) {
+                $user->administrativeZones()->sync([]);
+                $user->churches()->sync([]);
+
+                return;
+            }
         } else {
             $user->administrativeZones()->sync([]);
+            $user->churches()->sync([]);
+
+            return;
         }
 
-        if (! $zoneId || $churchIds === []) {
+        if ($churchIds === []) {
+            $user->administrativeZones()->sync([
+                $zoneId => ['current_zone' => null],
+            ]);
             $user->churches()->sync([]);
 
             return;
@@ -82,8 +95,38 @@ class CreateOrUpdateUser
             ->when($businessId, fn ($query) => $query->where('business_id', $businessId))
             ->where('is_active', true)
             ->pluck('id')
+            ->map(fn ($id) => (int) $id)
             ->all();
 
-        $user->churches()->sync($validChurchIds);
+        if ($validChurchIds === []) {
+            $user->administrativeZones()->sync([
+                $zoneId => ['current_zone' => null],
+            ]);
+            $user->churches()->sync([]);
+
+            return;
+        }
+
+        $resolvedDefaultChurchId = count($validChurchIds) === 1
+            ? $validChurchIds[0]
+            : ($defaultChurchId && in_array($defaultChurchId, $validChurchIds, true) ? $defaultChurchId : null);
+
+        $currentZoneId = $resolvedDefaultChurchId
+            ? (int) Church::query()->whereKey($resolvedDefaultChurchId)->value('administrative_zone_id')
+            : null;
+
+        $user->administrativeZones()->sync([
+            $zoneId => ['current_zone' => $currentZoneId ?? $zoneId],
+        ]);
+
+        $churchSync = [];
+
+        foreach ($validChurchIds as $churchId) {
+            $churchSync[$churchId] = [
+                'current_church' => $resolvedDefaultChurchId === $churchId ? $resolvedDefaultChurchId : null,
+            ];
+        }
+
+        $user->churches()->sync($churchSync);
     }
 }

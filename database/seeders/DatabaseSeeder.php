@@ -21,5 +21,13 @@ class DatabaseSeeder extends Seeder
             ChurchSeeder::class,
             MenuSeeder::class,
         ]);
+
+        $organizationSync = new UsersSeeder;
+
+        if ($this->command) {
+            $organizationSync->setCommand($this->command);
+        }
+
+        $organizationSync->syncOrganizationAssignments();
     }
 }

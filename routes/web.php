@@ -11,6 +11,7 @@ use App\Livewire\Admin\Churches\Show as AdminChurchesShow;
 use App\Livewire\Admin\Roles\Index as AdminRolesIndex;
 use App\Livewire\Admin\Users\Form as AdminUsersForm;
 use App\Livewire\Admin\Users\Index as AdminUsersIndex;
+use App\Livewire\Admin\Users\Show as AdminUsersShow;
 use App\Livewire\Admin\Zones\Form as AdminZonesForm;
 use App\Livewire\Admin\Zones\Index as AdminZonesIndex;
 use App\Livewire\Admin\Zones\Show as AdminZonesShow;
@@ -27,16 +28,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
 
-    Route::middleware('permission:users.view')->group(function () {
-        Route::get('/admin/users', AdminUsersIndex::class)->name('admin.users.index');
-    });
-
     Route::middleware('permission:users.create')->group(function () {
         Route::get('/admin/users/create', AdminUsersForm::class)->name('admin.users.create');
     });
 
     Route::middleware('permission:users.edit')->group(function () {
         Route::get('/admin/users/{user}/edit', AdminUsersForm::class)->name('admin.users.edit');
+    });
+
+    Route::middleware('permission:users.view')->group(function () {
+        Route::get('/admin/users', AdminUsersIndex::class)->name('admin.users.index');
+        Route::get('/admin/users/{user}', AdminUsersShow::class)->name('admin.users.show');
     });
 
     Route::middleware('permission:roles.view')->group(function () {

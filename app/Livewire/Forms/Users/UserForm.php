@@ -30,6 +30,8 @@ class UserForm extends Form
     /** @var array<int> */
     public array $church_ids = [];
 
+    public ?int $default_church_id = null;
+
     public function fillFromUser(User $user): void
     {
         $this->username = $user->username;
@@ -41,10 +43,19 @@ class UserForm extends Form
         $this->business_id = $user->business_id;
         $this->password = '';
 
-        $user->load(['administrativeZones:id', 'churches:id']);
+        $user->load([
+            'administrativeZones:id',
+            'churches' => fn ($query) => $query->select('churches.id'),
+        ]);
 
         $this->administrative_zone_id = $user->administrativeZones->first()?->id;
         $this->church_ids = $user->churches->pluck('id')->map(fn ($id) => (int) $id)->all();
+
+        $this->default_church_id = $user->churches
+            ->first(fn ($church) => (int) $church->pivot->current_church === (int) $church->id)
+            ?->id;
+
+        $this->normalizeDefaultChurchId();
     }
 
     /**
@@ -55,6 +66,8 @@ class UserForm extends Form
         if (! $actor->isSuperAdmin()) {
             $this->business_id = $actor->business_id;
         }
+
+        $this->normalizeDefaultChurchId();
 
         return $this->validate($this->rules($user, $actor));
     }
@@ -106,6 +119,12 @@ class UserForm extends Form
                         ->where('business_id', $businessId)
                         ->where('is_active', true)),
             ],
+            'default_church_id' => [
+                Rule::requiredIf(count($this->church_ids) > 1),
+                'nullable',
+                'integer',
+                Rule::in($this->church_ids),
+            ],
         ];
 
         if ($user) {
@@ -140,6 +159,29 @@ class UserForm extends Form
             'business_id.exists' => 'El negocio seleccionado no es válido.',
             'administrative_zone_id.exists' => 'La zona seleccionada no es válida para este negocio.',
             'church_ids.*.exists' => 'Una o más iglesias seleccionadas no son válidas para esta zona.',
+            'default_church_id.required' => 'Debes indicar la iglesia predeterminada al iniciar sesión.',
+            'default_church_id.in' => 'La iglesia predeterminada debe estar entre las iglesias seleccionadas.',
         ];
+    }
+
+    public function normalizeDefaultChurchId(): void
+    {
+        $churchIds = array_map('intval', $this->church_ids);
+
+        if ($churchIds === []) {
+            $this->default_church_id = null;
+
+            return;
+        }
+
+        if (count($churchIds) === 1) {
+            $this->default_church_id = $churchIds[0];
+
+            return;
+        }
+
+        if ($this->default_church_id && ! in_array((int) $this->default_church_id, $churchIds, true)) {
+            $this->default_church_id = null;
+        }
     }
 }

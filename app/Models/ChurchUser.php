@@ -14,6 +14,7 @@ class ChurchUser extends Pivot
     protected $fillable = [
         'user_id',
         'church_id',
+        'current_church',
     ];
 
     public function user(): BelongsTo

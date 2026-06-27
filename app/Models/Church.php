@@ -50,7 +50,13 @@ class Church extends Model
             return $query->whereRaw('1 = 0');
         }
 
-        return $query->where('business_id', $viewer->business_id);
+        $query->where('business_id', $viewer->business_id);
+
+        if ($viewer->can('churches.viewAll')) {
+            return $query;
+        }
+
+        return $query->whereHas('users', fn (Builder $userQuery) => $userQuery->where('users.id', $viewer->id));
     }
 
     public function isVisibleToAuthUser(?User $viewer = null): bool
@@ -61,11 +67,15 @@ class Church extends Model
             return true;
         }
 
-        if (! $viewer?->business_id) {
+        if (! $viewer?->business_id || $this->business_id !== $viewer->business_id) {
             return false;
         }
 
-        return $this->business_id === $viewer->business_id;
+        if ($viewer->can('churches.viewAll')) {
+            return true;
+        }
+
+        return $viewer->belongsToChurch((int) $this->id);
     }
 
     public function business(): BelongsTo

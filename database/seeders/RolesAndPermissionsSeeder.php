@@ -25,7 +25,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'roles.view', 'roles.create', 'roles.edit', 'roles.delete',
             'permissions.view', 'permissions.assign',
             'zones.view', 'zones.create', 'zones.edit', 'zones.delete',
-            'churches.view', 'churches.create', 'churches.edit', 'churches.delete',
+            'churches.view', 'churches.viewAll', 'churches.create', 'churches.edit', 'churches.delete',
             'businesses.view', 'businesses.create', 'businesses.edit', 'businesses.delete',
         ])->mapWithKeys(fn ($name) => [
             $name => Permission::firstOrCreate(['name' => $name, 'guard_name' => $guard]),
@@ -67,7 +67,7 @@ class RolesAndPermissionsSeeder extends Seeder
         ])->values());
 
         $pastor->syncPermissions($pastorPermissions);
-        $presbitero->syncPermissions($pastorPermissions);
+        $presbitero->syncPermissions($pastorPermissions->merge($perms->only(['churches.viewAll']))->values());
         $coPastor->syncPermissions($perms->only([
             'users.view', 'users.create', 'users.edit', 'users.delete',
             'permissions.view', 'permissions.assign',

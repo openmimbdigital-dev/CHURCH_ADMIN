@@ -79,6 +79,7 @@ return [
             'name' => 'Iglesias',
             'permissions' => [
                 'churches.view' => 'Ver iglesias',
+                'churches.viewAll' => 'Ver todas las iglesias',
                 'churches.create' => 'Crear iglesias',
                 'churches.edit' => 'Editar iglesias',
                 'churches.delete' => 'Eliminar iglesias',

@@ -63,23 +63,7 @@ class DatatableUsers extends LivewireDatatable
             }, [], 'business')
                 ->label('Negocio'),
 
-            Column::callback(['administrative_zone_name'], function ($name) {
-                return $name
-                    ? e($name)
-                    : '<span class="text-slate-400">—</span>';
-            }, [], 'administrative_zone_name')
-                ->label('Zona')
-                ->searchable()
-                ->sortable(),
 
-            Column::callback(['church_name'], function ($name) {
-                return $name
-                    ? e($name)
-                    : '<span class="text-slate-400">—</span>';
-            }, [], 'church_name')
-                ->label('Iglesia')
-                ->searchable()
-                ->sortable(),
 
             Column::callback(['id'], function ($id) {
                 $user = User::query()->visibleToAuth()->find($id);

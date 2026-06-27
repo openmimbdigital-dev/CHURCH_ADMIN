@@ -6,6 +6,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -30,8 +31,6 @@ class User extends Authenticatable
         'phone_number',
         'status',
         'business_id',
-        'administrative_zone_name',
-        'church_name',
     ];
 
     protected $hidden = [
@@ -90,6 +89,20 @@ class User extends Authenticatable
     public function business(): BelongsTo
     {
         return $this->belongsTo(Business::class);
+    }
+
+    public function administrativeZones(): BelongsToMany
+    {
+        return $this->belongsToMany(AdministrativeZone::class)
+            ->using(AdministrativeZoneUser::class)
+            ->withTimestamps();
+    }
+
+    public function churches(): BelongsToMany
+    {
+        return $this->belongsToMany(Church::class)
+            ->using(ChurchUser::class)
+            ->withTimestamps();
     }
 
     public function ledAdministrativeZones(): MorphToMany

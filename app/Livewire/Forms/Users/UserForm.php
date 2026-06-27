@@ -27,7 +27,8 @@ class UserForm extends Form
 
     public ?int $administrative_zone_id = null;
 
-    public ?int $church_id = null;
+    /** @var array<int> */
+    public array $church_ids = [];
 
     public function fillFromUser(User $user): void
     {
@@ -40,15 +41,10 @@ class UserForm extends Form
         $this->business_id = $user->business_id;
         $this->password = '';
 
-        $church = $user->ledChurches()->first();
-        if ($church) {
-            $this->church_id = $church->id;
-            $this->administrative_zone_id = $church->administrative_zone_id;
-        } else {
-            $zone = $user->ledAdministrativeZones()->first();
-            $this->administrative_zone_id = $zone?->id;
-            $this->church_id = null;
-        }
+        $user->load(['administrativeZones:id', 'churches:id']);
+
+        $this->administrative_zone_id = $user->administrativeZones->first()?->id;
+        $this->church_ids = $user->churches->pluck('id')->map(fn ($id) => (int) $id)->all();
     }
 
     /**
@@ -101,8 +97,8 @@ class UserForm extends Form
                 Rule::exists('administrative_zones', 'id')
                     ->where(fn ($query) => $query->where('business_id', $businessId)->where('is_active', true)),
             ],
-            'church_id' => [
-                'nullable',
+            'church_ids' => ['nullable', 'array'],
+            'church_ids.*' => [
                 'integer',
                 Rule::exists('churches', 'id')
                     ->where(fn ($query) => $query
@@ -143,7 +139,7 @@ class UserForm extends Form
             'business_id.required' => 'Debes seleccionar un negocio.',
             'business_id.exists' => 'El negocio seleccionado no es válido.',
             'administrative_zone_id.exists' => 'La zona seleccionada no es válida para este negocio.',
-            'church_id.exists' => 'La iglesia seleccionada no es válida para esta zona.',
+            'church_ids.*.exists' => 'Una o más iglesias seleccionadas no son válidas para esta zona.',
         ];
     }
 }

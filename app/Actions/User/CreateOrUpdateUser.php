@@ -38,56 +38,52 @@ class CreateOrUpdateUser
                 $userData
             );
 
-            $this->syncLeadership(
+            $this->syncZoneAndChurches(
                 $savedUser,
-                $data['administrative_zone_id'] ?? null,
-                $data['church_id'] ?? null,
+                isset($data['administrative_zone_id']) ? (int) $data['administrative_zone_id'] : null,
+                $data['church_ids'] ?? [],
                 $businessId
             );
 
-            return $savedUser->fresh();
+            return $savedUser->fresh(['administrativeZones', 'churches']);
         });
     }
 
-    protected function syncLeadership(
+    /**
+     * @param  array<int|string>  $churchIds
+     */
+    protected function syncZoneAndChurches(
         User $user,
         ?int $zoneId,
-        ?int $churchId,
+        array $churchIds,
         ?int $businessId
     ): void {
-        $user->ledChurches()->detach();
-        $user->ledAdministrativeZones()->detach();
-
-        $zoneName = null;
-        $churchName = null;
-
-        if ($churchId) {
-            $church = Church::query()
-                ->with('administrativeZone')
-                ->whereKey($churchId)
-                ->when($businessId, fn ($q) => $q->where('business_id', $businessId))
-                ->first();
-
-            if ($church) {
-                $user->ledChurches()->attach($church->id);
-                $churchName = $church->name;
-                $zoneName = $church->administrativeZone?->name;
-            }
-        } elseif ($zoneId) {
-            $zone = AdministrativeZone::query()
+        if ($zoneId) {
+            $zoneExists = AdministrativeZone::query()
                 ->whereKey($zoneId)
-                ->when($businessId, fn ($q) => $q->where('business_id', $businessId))
-                ->first();
+                ->when($businessId, fn ($query) => $query->where('business_id', $businessId))
+                ->where('is_active', true)
+                ->exists();
 
-            if ($zone) {
-                $user->ledAdministrativeZones()->attach($zone->id);
-                $zoneName = $zone->name;
-            }
+            $user->administrativeZones()->sync($zoneExists ? [$zoneId] : []);
+        } else {
+            $user->administrativeZones()->sync([]);
         }
 
-        $user->update([
-            'administrative_zone_name' => $zoneName,
-            'church_name' => $churchName,
-        ]);
+        if (! $zoneId || $churchIds === []) {
+            $user->churches()->sync([]);
+
+            return;
+        }
+
+        $validChurchIds = Church::query()
+            ->whereIn('id', $churchIds)
+            ->where('administrative_zone_id', $zoneId)
+            ->when($businessId, fn ($query) => $query->where('business_id', $businessId))
+            ->where('is_active', true)
+            ->pluck('id')
+            ->all();
+
+        $user->churches()->sync($validChurchIds);
     }
 }

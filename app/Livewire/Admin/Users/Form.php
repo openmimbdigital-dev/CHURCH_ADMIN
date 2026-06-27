@@ -75,14 +75,14 @@ class Form extends Component
     public function updatedUserFormBusinessId(): void
     {
         $this->userForm->administrative_zone_id = null;
-        $this->userForm->church_id = null;
+        $this->userForm->church_ids = [];
         $this->loadZones();
         $this->churches = collect();
     }
 
     public function updatedUserFormAdministrativeZoneId(): void
     {
-        $this->userForm->church_id = null;
+        $this->userForm->church_ids = [];
         $this->loadChurches();
     }
 

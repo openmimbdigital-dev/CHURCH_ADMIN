@@ -111,7 +111,7 @@
                     </div>
                 @endif
 
-                <div>
+                <div @class(['md:col-span-2' => ! auth()->user()->isSuperAdmin()])>
                     <label for="administrative_zone_id" class="{{ $labelClass }}">Zona administrativa</label>
                     <select
                         id="administrative_zone_id"
@@ -133,23 +133,35 @@
                     @error('userForm.administrative_zone_id') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
                 </div>
 
-                <div>
-                    <label for="church_id" class="{{ $labelClass }}">Iglesia</label>
-                    <select
-                        id="church_id"
-                        wire:model="userForm.church_id"
-                        class="input-corporate"
-                        @disabled(! $userForm->administrative_zone_id)
-                    >
-                        <option value="">
-                            {{ $userForm->administrative_zone_id ? 'Selecciona una iglesia' : 'Primero selecciona una zona' }}
-                        </option>
-                        @foreach ($churches as $church)
-                            <option value="{{ $church->id }}">{{ $church->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('userForm.church_id') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
-                </div>
+                @if ($userForm->administrative_zone_id)
+                    <div class="md:col-span-2">
+                        <p class="{{ $labelClass }}">Iglesias</p>
+                        <p class="mb-3 text-xs text-slate-500">Selecciona una o más iglesias de la zona.</p>
+                        @if ($churches->isEmpty())
+                            <p class="text-sm text-slate-400">No hay iglesias activas en esta zona.</p>
+                        @else
+                            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                @foreach ($churches as $church)
+                                    <label @class([
+                                        'flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 transition',
+                                        'border-primary-200 bg-primary-50' => in_array($church->id, $userForm->church_ids),
+                                        'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50' => ! in_array($church->id, $userForm->church_ids),
+                                    ])>
+                                        <input
+                                            type="checkbox"
+                                            wire:model="userForm.church_ids"
+                                            value="{{ $church->id }}"
+                                            class="h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                                        >
+                                        <span class="text-sm text-slate-700">{{ $church->name }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        @endif
+                        @error('userForm.church_ids') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
+                        @error('userForm.church_ids.*') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
+                    </div>
+                @endif
             </div>
         </section>
 

@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Churches;
 
 use App\Enums\ChurchCategory;
+use App\Livewire\Concerns\FormatsDatatableActionsColumn;
 use App\Models\AdministrativeZone;
 use App\Models\Business;
 use App\Models\Church;
@@ -16,6 +17,8 @@ use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 
 class DatatableChurches extends LivewireDatatable
 {
+    use FormatsDatatableActionsColumn;
+
     public bool $exportable = true;
 
     public ?int $perPage = 25;

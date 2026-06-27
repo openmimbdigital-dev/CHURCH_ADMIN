@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Users;
 
+use App\Livewire\Concerns\FormatsDatatableActionsColumn;
 use App\Models\Business;
 use App\Models\User;
 use Arm092\LivewireDatatables\Column;
@@ -13,6 +14,8 @@ use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 
 class DatatableUsers extends LivewireDatatable
 {
+    use FormatsDatatableActionsColumn;
+
     public bool $exportable = true;
 
     public ?int $perPage = 25;

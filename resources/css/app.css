@@ -94,6 +94,16 @@
     .datatable-corporate > div {
         @apply min-w-0 max-w-full;
     }
+
+    .datatable-corporate th:last-child,
+    .datatable-corporate td:last-child {
+        @apply w-px whitespace-nowrap;
+        vertical-align: middle;
+    }
+
+    .datatable-corporate .datatable-actions {
+        @apply inline-flex flex-nowrap items-center justify-end gap-1 whitespace-nowrap;
+    }
 }
 
 /* Datatable — tema corporativo */

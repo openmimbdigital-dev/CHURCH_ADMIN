@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Zones;
 
+use App\Livewire\Concerns\FormatsDatatableActionsColumn;
 use App\Models\AdministrativeZone;
 use App\Models\Business;
 use App\Models\Church;
@@ -15,6 +16,8 @@ use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 
 class DatatableZones extends LivewireDatatable
 {
+    use FormatsDatatableActionsColumn;
+
     public bool $exportable = true;
 
     public ?int $perPage = 25;

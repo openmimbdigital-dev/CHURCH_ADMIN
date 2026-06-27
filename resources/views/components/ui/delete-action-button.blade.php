@@ -14,7 +14,7 @@
     @disabled($disabled)
     title="{{ $disabled ? $disabledReason : $title }}"
     {{ $attributes->class([
-        'inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg transition',
+        'inline-flex min-h-9 min-w-9 shrink-0 items-center justify-center rounded-lg transition',
         'bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700' => ! $disabled,
         'cursor-not-allowed bg-slate-100 text-slate-400 opacity-70' => $disabled,
     ]) }}

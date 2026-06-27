@@ -140,7 +140,7 @@
         </aside>
 
         <div class="flex min-h-screen min-w-0 flex-1 flex-col">
-            <header class="relative z-20 flex h-14 shrink-0 items-center justify-between gap-2 overflow-hidden border-b border-slate-200/80 bg-white/95 px-4 shadow-sm backdrop-blur-sm lg:px-6">
+            <header class="relative z-20 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-slate-200/80 bg-white/95 px-4 shadow-sm backdrop-blur-sm lg:px-6">
                 <div class="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
                     <button
                         type="button"

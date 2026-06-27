@@ -111,9 +111,9 @@ Botones icono en datatables; incluir `disabled` + `disabled-reason` si hay depen
 ```
 
 ### Acciones en datatable
-- Contenedor: `flex flex-wrap items-center justify-end gap-1`
-- Botones icono: `min-h-9 min-w-9` (área táctil)
-- Ocultar columnas secundarias en PHP/datatable cuando sea necesario
+- Contenedor: `<x-ui.datatable-actions>` (`flex-nowrap`, botones en fila horizontal)
+- Botones icono: `min-h-9 min-w-9 shrink-0`
+- Datatables: usar trait `FormatsDatatableActionsColumn` en la clase del datatable
 
 ---
 

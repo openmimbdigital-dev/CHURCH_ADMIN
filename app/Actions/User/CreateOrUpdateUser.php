@@ -70,12 +70,14 @@ class CreateOrUpdateUser
             if (! $zoneExists) {
                 $user->administrativeZones()->sync([]);
                 $user->churches()->sync([]);
+                $user->update(['current_church_id' => null]);
 
                 return;
             }
         } else {
             $user->administrativeZones()->sync([]);
             $user->churches()->sync([]);
+            $user->update(['current_church_id' => null]);
 
             return;
         }
@@ -85,6 +87,7 @@ class CreateOrUpdateUser
                 $zoneId => ['current_zone' => null],
             ]);
             $user->churches()->sync([]);
+            $user->update(['current_church_id' => null]);
 
             return;
         }
@@ -103,6 +106,7 @@ class CreateOrUpdateUser
                 $zoneId => ['current_zone' => null],
             ]);
             $user->churches()->sync([]);
+            $user->update(['current_church_id' => null]);
 
             return;
         }
@@ -128,5 +132,11 @@ class CreateOrUpdateUser
         }
 
         $user->churches()->sync($churchSync);
+
+        if ($resolvedDefaultChurchId) {
+            app(SetUserCurrentChurch::class)->handle($user, $resolvedDefaultChurchId);
+        } else {
+            $user->update(['current_church_id' => null]);
+        }
     }
 }

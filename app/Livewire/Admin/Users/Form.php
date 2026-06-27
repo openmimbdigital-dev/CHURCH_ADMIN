@@ -39,6 +39,10 @@ class Form extends Component
             abort(403, 'No tienes un negocio asignado.');
         }
 
+        if (! $viewer->isSuperAdmin() && ! $viewer->current_church_id) {
+            abort(403, 'Debes seleccionar una iglesia activa para gestionar usuarios.');
+        }
+
         if ($user) {
             if (! $viewer->can('users.edit')) {
                 abort(403);
@@ -54,6 +58,8 @@ class Form extends Component
             if (! $viewer->can('users.create')) {
                 abort(403);
             }
+
+            $this->prefillOrganizationFromCurrentChurch($viewer);
         }
 
         $this->businesses = $viewer->isSuperAdmin()
@@ -147,6 +153,27 @@ class Form extends Component
             ->where('is_active', true)
             ->orderBy('name')
             ->get(['id', 'name']);
+    }
+
+    protected function prefillOrganizationFromCurrentChurch(User $viewer): void
+    {
+        if ($viewer->isSuperAdmin() || ! $viewer->current_church_id) {
+            return;
+        }
+
+        $church = Church::query()
+            ->whereKey($viewer->current_church_id)
+            ->where('is_active', true)
+            ->first(['id', 'administrative_zone_id', 'business_id']);
+
+        if (! $church) {
+            return;
+        }
+
+        $this->userForm->business_id = $church->business_id;
+        $this->userForm->administrative_zone_id = $church->administrative_zone_id;
+        $this->userForm->church_ids = [(int) $church->id];
+        $this->userForm->default_church_id = (int) $church->id;
     }
 
     public function render()

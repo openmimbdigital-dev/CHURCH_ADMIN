@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -31,6 +32,7 @@ class User extends Authenticatable
         'phone_number',
         'status',
         'business_id',
+        'current_church_id',
     ];
 
     protected $hidden = [
@@ -81,6 +83,15 @@ class User extends Authenticatable
             $query->whereDoesntHave('roles', fn (Builder $roleQuery) => $roleQuery->where('name', 'Presbitero'));
         }
 
+        if (! $viewer->current_church_id) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        $query->whereHas('churches', fn (Builder $churchQuery) => $churchQuery->where(
+            'churches.id',
+            $viewer->current_church_id
+        ));
+
         return $query;
     }
 
@@ -104,7 +115,16 @@ class User extends Authenticatable
             return false;
         }
 
-        return true;
+        if (! $viewer->current_church_id) {
+            return false;
+        }
+
+        return $this->belongsToChurch((int) $viewer->current_church_id);
+    }
+
+    public function belongsToChurch(int $churchId): bool
+    {
+        return $this->churches()->whereKey($churchId)->exists();
     }
 
     public function roleLabelForViewer(?User $viewer = null): ?string
@@ -126,6 +146,23 @@ class User extends Authenticatable
     public function business(): BelongsTo
     {
         return $this->belongsTo(Business::class);
+    }
+
+    public function currentChurch(): BelongsTo
+    {
+        return $this->belongsTo(Church::class, 'current_church_id');
+    }
+
+    public function syncCurrentChurchFromPivot(): void
+    {
+        $churchId = DB::table('church_user')
+            ->where('user_id', $this->id)
+            ->whereNotNull('current_church')
+            ->value('current_church');
+
+        if ($churchId && (int) $this->current_church_id !== (int) $churchId) {
+            $this->update(['current_church_id' => $churchId]);
+        }
     }
 
     public function administrativeZones(): BelongsToMany

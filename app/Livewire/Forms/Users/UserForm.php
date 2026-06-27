@@ -3,6 +3,7 @@
 namespace App\Livewire\Forms\Users;
 
 use App\Actions\User\CreateOrUpdateUser;
+use App\Models\Church;
 use App\Models\User;
 use Illuminate\Validation\Rule;
 use Livewire\Form;
@@ -65,6 +66,7 @@ class UserForm extends Form
     {
         if (! $actor->isSuperAdmin()) {
             $this->business_id = $actor->business_id;
+            $this->applyCurrentChurchContext($actor);
         }
 
         $this->normalizeDefaultChurchId();
@@ -182,6 +184,26 @@ class UserForm extends Form
 
         if ($this->default_church_id && ! in_array((int) $this->default_church_id, $churchIds, true)) {
             $this->default_church_id = null;
+        }
+    }
+
+    protected function applyCurrentChurchContext(User $actor): void
+    {
+        if (! $actor->current_church_id) {
+            return;
+        }
+
+        $currentChurchId = (int) $actor->current_church_id;
+        $churchIds = array_map('intval', $this->church_ids);
+
+        if (! in_array($currentChurchId, $churchIds, true)) {
+            $this->church_ids[] = $currentChurchId;
+        }
+
+        if (! $this->administrative_zone_id) {
+            $this->administrative_zone_id = Church::query()
+                ->whereKey($currentChurchId)
+                ->value('administrative_zone_id');
         }
     }
 }

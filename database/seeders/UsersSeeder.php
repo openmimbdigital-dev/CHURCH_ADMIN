@@ -127,6 +127,12 @@ class UsersSeeder extends Seeder
         }
 
         $this->syncMultiChurchWithinZones();
+        $this->syncCurrentChurchIdsFromPivot();
+    }
+
+    protected function syncCurrentChurchIdsFromPivot(): void
+    {
+        User::query()->each(fn (User $user) => $user->syncCurrentChurchFromPivot());
     }
 
     protected function syncMultiChurchWithinZones(): void
@@ -268,6 +274,7 @@ class UsersSeeder extends Seeder
 
                 $user->churches()->updateExistingPivot($church->id, ['current_church' => $church->id]);
                 $user->administrativeZones()->updateExistingPivot($zoneId, ['current_zone' => $zoneId]);
+                $user->update(['current_church_id' => $church->id]);
             }
 
             return;
@@ -288,6 +295,8 @@ class UsersSeeder extends Seeder
             } else {
                 $user->churches()->attach($church->id, ['current_church' => $church->id]);
             }
+
+            $user->update(['current_church_id' => $church->id]);
 
             return;
         }

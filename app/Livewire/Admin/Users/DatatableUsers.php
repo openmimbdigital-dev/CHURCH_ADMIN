@@ -11,6 +11,7 @@ use Arm092\LivewireDatatables\Livewire\LivewireDatatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
+use Livewire\Attributes\On;
 
 class DatatableUsers extends LivewireDatatable
 {
@@ -21,6 +22,12 @@ class DatatableUsers extends LivewireDatatable
     public ?int $perPage = 25;
 
     public int $deleteId = 0;
+
+    #[On('church-switched')]
+    public function onChurchSwitched(): void
+    {
+        //
+    }
 
     public function builder(): Builder
     {

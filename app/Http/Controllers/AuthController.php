@@ -53,6 +53,8 @@ class AuthController extends Controller
             ]);
         }
 
+        $user->syncCurrentChurchFromPivot();
+
         return redirect()->intended(route('dashboard'));
     }
 

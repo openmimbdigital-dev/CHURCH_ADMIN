@@ -17,6 +17,10 @@ class Show extends Component
             abort(403);
         }
 
+        if (! auth()->user()->isSuperAdmin() && ! auth()->user()->current_church_id) {
+            abort(403, 'Debes seleccionar una iglesia activa para consultar usuarios.');
+        }
+
         if (! $user->isVisibleToAuthUser()) {
             abort(403);
         }

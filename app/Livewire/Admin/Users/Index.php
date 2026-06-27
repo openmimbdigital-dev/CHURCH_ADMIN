@@ -18,10 +18,22 @@ class Index extends Component
         //
     }
 
+    #[On('church-switched')]
+    public function onChurchSwitched(): void
+    {
+        //
+    }
+
     public function mount(): void
     {
-        if (! auth()->user()->isSuperAdmin() && ! auth()->user()->business_id) {
+        $viewer = auth()->user();
+
+        if (! $viewer->isSuperAdmin() && ! $viewer->business_id) {
             abort(403, 'No tienes un negocio asignado para consultar usuarios.');
+        }
+
+        if (! $viewer->isSuperAdmin() && ! $viewer->current_church_id) {
+            abort(403, 'Debes seleccionar una iglesia activa para consultar usuarios.');
         }
     }
 

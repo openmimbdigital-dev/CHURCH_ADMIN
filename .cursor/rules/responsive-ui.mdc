@@ -1,36 +1,202 @@
 ---
-description: Todo el diseño UI debe ser responsive (móvil, tablet y escritorio)
-globs: resources/**/*.{blade.php,css,js}
+description: Guía UI responsive obligatoria para layout, index, form, show y modales Livewire (CHURCH_V1)
+globs: resources/views/**/*.blade.php,resources/css/**/*.css
 alwaysApply: true
 ---
 
-# UI responsive
+# Guía UI responsive — CHURCH_V1
 
-Todo diseño UI debe funcionar bien en **móvil**, **tablet** y **escritorio**.
+**Obligatorio** al maquetar cualquier vista Livewire, layout o componente UI.
+
+Referencias de implementación:
+- Layout drawer: `resources/views/layouts/app.blade.php`
+- Index: `admin/users/index`, `admin/zones/index`, `admin/churches/index`, `admin/roles/index`
+- Form: `admin/users/form`, `admin/zones/form`, `admin/churches/form`
+- Show: `admin/zones/show`, `admin/churches/show`
+- Componentes: `resources/views/components/ui/`
+
+Paleta corporativa: **primary** (`#0EA5E9`), clases `.section-corporate`, `.panel-corporate`, `.card-corporate`, `.input-corporate`, `.datatable-corporate`.
+
+---
+
+## Layout app — menú lateral (`layouts/app.blade.php`)
+
+- **Móvil/tablet (`< lg`)**: sidebar como drawer oculto (`-translate-x-full`), overlay semitransparente, botón ☰/✕ en header.
+- **En móvil siempre vista expandida** (iconos + textos): usar `showSidebarLabels()` / `showSidebarIconsOnly()` — no aplicar `sidebarCollapsed` del escritorio al drawer móvil.
+- **Escritorio (`lg+`)**: sidebar fijo, contraer/expandir con botón del header; botón «Encoger» inferior solo en `lg+` (`hidden lg:block`).
+- `toggleSidebarFromHeader()`: en `lg+` contrae/expande; en móvil abre/cierra drawer.
+- Al hacer clic en un enlace del nav móvil: `closeMobileSidebar()` (delegado en `<nav @click>`).
+- `Escape`: cierra drawer móvil y menús flotantes de sección colapsada.
+- `<main>`: `p-4 lg:p-6 overflow-auto`.
+
+---
+
+## Contenedor de página
+
+```blade
+<div class="relative mx-auto w-full min-w-0 max-w-[90rem] overflow-x-hidden">
+```
+
+El padding de página lo aporta `<main class="... overflow-x-hidden p-4 lg:p-6">` del layout — **no** duplicar `p-4` en el contenedor interno.
+
+### Sin scroll horizontal en móvil
+
+- Layout: `html/body { overflow-x: hidden }`, contenedor raíz y `<main>` con `overflow-x-hidden min-w-0`.
+- Contenedores de página: `min-w-0 overflow-x-hidden`.
+- Datatables: scroll **solo** dentro de `.datatable-corporate` (`overflow-x-auto`, `min-w-0`, `max-w-full`), nunca en el body.
+- Sidebar móvil: drawer `fixed` con `max-w-[85vw]`; cerrado con `-translate-x-full`.
+
+---
+
+## Componentes reutilizables
+
+### Botón crear — `<x-ui.create-button>`
+
+Usar en headers de index. Color `primary-600`, `min-h-11`.
+
+```blade
+{{-- Livewire (abre modal) --}}
+<x-ui.create-button wire:click="openCreate" class="w-full justify-center sm:w-auto">
+    Nuevo registro
+</x-ui.create-button>
+
+{{-- Enlace a formulario --}}
+<x-ui.create-button :href="route('...')" class="w-full justify-center sm:w-auto">
+    Crear registro
+</x-ui.create-button>
+```
+
+### Eliminar — `<x-ui.delete-action-button>`
+
+Botones icono en datatables; incluir `disabled` + `disabled-reason` si hay dependencias.
+
+---
+
+## Index
+
+### Breadcrumb
+```blade
+<nav class="mb-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium text-slate-500">
+```
+
+### Header
+```blade
+<header class="mb-8 space-y-6">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div class="min-w-0 flex-1 border-l-4 border-primary-500 pl-4 sm:pl-5">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary-600/90">Sección</p>
+            <h1 class="mt-2 text-xl font-bold tracking-tight text-slate-900 md:text-2xl">Título</h1>
+            <p class="mt-2 max-w-xl text-sm text-slate-600">Descripción</p>
+        </div>
+        <x-ui.create-button ... class="w-full justify-center sm:w-auto" />
+    </div>
+    {{-- Stats debajo del título --}}
+    <div class="grid w-full grid-cols-2 gap-3 sm:max-w-xs">...</div>
+</header>
+```
+
+### Stats
+- `grid grid-cols-2 gap-3 sm:max-w-xs` (2 métricas)
+- `grid grid-cols-2 gap-3 sm:grid-cols-3 sm:max-w-lg` (3 métricas; tercera `col-span-2 sm:col-span-1` en móvil si aplica)
+- Números: `text-2xl sm:text-3xl`
+
+### Datatable
+```blade
+<section class="panel-corporate">
+    <div class="panel-corporate-header px-4 py-4 sm:px-5">...</div>
+    <div class="datatable-corporate overflow-x-auto p-3 sm:p-4">
+        <livewire:... />
+    </div>
+</section>
+```
+
+### Acciones en datatable
+- Contenedor: `flex flex-wrap items-center justify-end gap-1`
+- Botones icono: `min-h-9 min-w-9` (área táctil)
+- Ocultar columnas secundarias en PHP/datatable cuando sea necesario
+
+---
+
+## Show
+
+```blade
+<header class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <div class="min-w-0 flex-1 border-l-4 border-primary-500 pl-4 sm:pl-5">...</div>
+    <div class="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row">
+        <a class="inline-flex min-h-11 flex-1 items-center justify-center ... sm:flex-none">Volver</a>
+        <a class="inline-flex min-h-11 flex-1 items-center justify-center bg-primary-600 ... sm:flex-none">Editar</a>
+    </div>
+</header>
+
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <section class="section-corporate lg:col-span-2">...</section>
+</div>
+```
+
+---
+
+## Formulario en página
+
+- Mismo contenedor `max-w-[90rem] p-4 sm:p-6`
+- Header con botón Volver: `w-full sm:w-auto`
+- Grids de campos: `grid grid-cols-1 gap-5 md:grid-cols-2`
+- Campos ancho completo: `md:col-span-2`
+- Inputs: clase `.input-corporate`
+- Footer acciones: `flex flex-col-reverse gap-3 sm:flex-row sm:justify-end`
+- Botones footer: `w-full sm:w-auto`, `min-h-11`
+
+---
+
+## Modales (Livewire inline)
+
+```blade
+<div class="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 pt-10 backdrop-blur-sm sm:pt-16">
+    <div class="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white ...">
+        <div class="... px-4 py-4 sm:px-6">Header</div>
+        <div class="flex-1 overflow-y-auto px-4 py-5 sm:px-6">Cuerpo</div>
+        <div class="flex flex-col-reverse gap-2 border-t px-4 py-4 sm:flex-row sm:justify-end sm:gap-3 sm:px-6">
+            <button class="w-full sm:w-auto min-h-11">Cancelar</button>
+            <button class="w-full sm:w-auto min-h-11 bg-primary-600">Guardar</button>
+        </div>
+    </div>
+</div>
+```
+
+Grids de permisos/checkboxes: `grid grid-cols-1 gap-1.5 sm:grid-cols-2`
+
+---
+
+## Breakpoints de referencia
+
+| Elemento | Móvil (<640) | Tablet (`sm`/`md`) | Desktop (`lg`+) |
+|----------|--------------|--------------------|--------------------|
+| Sidebar | drawer + overlay | drawer + overlay | fijo / colapsable |
+| Header index/show | columna, botones `w-full` | fila | fila |
+| Stats | 2 cols | 2–3 cols | 2–3 cols |
+| Datatable | scroll horizontal | scroll | todas las columnas |
+| Modal | `pt-10`, `max-h-[85vh]` | igual | `max-w-2xl` centrado |
+| Form footer | botones apilados | fila derecha | fila derecha |
+
+---
 
 ## Enfoque mobile-first
 
-- Diseña primero para pantallas pequeñas y escala con breakpoints de Tailwind: `sm:`, `md:`, `lg:`, `xl:`.
-- Evita anchos fijos que rompan en móvil; usa `w-full`, `min-w-0`, `max-w-*` y contenedores fluidos.
+- Diseña primero para **375px**, luego escala con `sm:`, `md:`, `lg:`.
+- Usa `min-w-0`, `truncate`, `flex-wrap` para evitar overflow.
+- Área táctil mínima ~44px (`min-h-11`, `py-2.5`).
+- No depender solo de `:hover` para información crítica.
 
-## Layout y espaciado
+---
 
-- Usa `flex-col` en móvil y `md:flex-row` / `lg:flex-row` cuando haya espacio.
-- Grids: `grid-cols-1` → `sm:grid-cols-2` → `lg:grid-cols-3` (o el número que aplique).
-- Padding y gaps: más compactos en móvil (`p-4`, `gap-3`), más amplios en desktop (`lg:p-6`, `lg:gap-6`).
+## Checklist antes de entregar
 
-## Tablas y datatables
-
-- Envuelve tablas en `overflow-x-auto` para scroll horizontal en pantallas pequeñas.
-- Oculta columnas secundarias en móvil con `hidden md:table-cell` cuando sea necesario.
-- Botones de acción: apilables o con iconos en móvil; texto completo en `sm:` o superior.
-
-## Tipografía y controles
-
-- Títulos: `text-xl` en móvil, `md:text-2xl` en desktop.
-- Botones e inputs: área táctil mínima ~44px de alto en móvil (`py-2.5`, `min-h-11`).
-- Evita hover como única forma de mostrar información crítica; debe ser usable en touch.
-
-## Verificación
-
-Antes de dar por terminada una vista, revisa mentalmente (o en devtools) estos anchos: **375px**, **768px**, **1280px**.
+- [ ] Contenedor `min-w-0 max-w-[90rem] overflow-x-hidden` (padding en `<main>`, no duplicado)
+- [ ] Header en columna en móvil; botón crear con `w-full sm:w-auto`
+- [ ] `<x-ui.create-button>` para acción crear (no botón custom duplicado)
+- [ ] Datatable en `overflow-x-auto p-3 sm:p-4`
+- [ ] Form/show: botones `w-full sm:w-auto` y footer `flex-col-reverse sm:flex-row`
+- [ ] Modal: padding y footer responsive
+- [ ] Sidebar: drawer en móvil, `showSidebarLabels()` en partial del menú
+- [ ] Sin scroll horizontal en body a 375px (`overflow-x-hidden` en layout + datatable contenido)
+- [ ] Verificar en **375px**, **768px**, **1280px**
+- [ ] Textos UI en español

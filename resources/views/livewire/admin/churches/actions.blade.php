@@ -1,4 +1,4 @@
-<div class="flex items-center justify-end gap-1">
+<div class="flex flex-wrap items-center justify-end gap-1">
     @if ($canView)
         <a
             href="{{ route('admin.churches.show', $id) }}"

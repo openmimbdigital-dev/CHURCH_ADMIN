@@ -1,4 +1,4 @@
-<div class="relative mx-auto w-full max-w-[90rem]">
+<div class="relative mx-auto w-full min-w-0 max-w-[90rem] overflow-x-hidden">
     <nav class="mb-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium text-slate-500">
         <a href="{{ route('dashboard') }}" wire:navigate class="rounded px-1.5 py-0.5 hover:bg-slate-200/60">Inicio</a>
         <span class="text-slate-300">/</span>
@@ -8,7 +8,7 @@
     </nav>
 
     <header class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div class="min-w-0 flex-1 border-l-4 border-primary-500 pl-5">
+        <div class="min-w-0 flex-1 border-l-4 border-primary-500 pl-4 sm:pl-5">
             <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary-600/90">Zona administrativa</p>
             <h1 class="mt-2 text-xl font-bold tracking-tight text-slate-900 md:text-2xl">{{ $zone->name }}</h1>
             <div class="mt-3 flex flex-wrap items-center gap-2">
@@ -20,11 +20,11 @@
                 <span class="text-sm text-slate-500">{{ $zone->churches->count() }} {{ $zone->churches->count() === 1 ? 'iglesia' : 'iglesias' }}</span>
             </div>
         </div>
-        <div class="flex flex-col gap-2 sm:flex-row">
+        <div class="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row">
             <a
                 href="{{ route('admin.zones.index') }}"
                 wire:navigate
-                class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-primary-200/80 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-primary-50/50"
+                class="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-primary-200/80 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-primary-50/50 sm:flex-none"
             >
                 Volver al listado
             </a>
@@ -32,7 +32,7 @@
                 <a
                     href="{{ route('admin.zones.edit', $zone) }}"
                     wire:navigate
-                    class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700"
+                    class="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 sm:flex-none"
                 >
                     Editar zona
                 </a>

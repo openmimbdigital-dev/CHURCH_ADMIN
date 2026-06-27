@@ -62,7 +62,7 @@
 
     /* Bordes corporativos — azul claro sky (primary-200) */
     .section-corporate {
-        @apply overflow-hidden rounded-2xl border border-primary-200/80 bg-white shadow-sm;
+        @apply min-w-0 max-w-full overflow-hidden rounded-2xl border border-primary-200/80 bg-white shadow-sm;
     }
 
     .section-corporate-header {
@@ -75,15 +75,24 @@
     }
 
     .card-corporate {
-        @apply rounded-2xl border border-primary-200/80 bg-white shadow-sm;
+        @apply min-w-0 max-w-full rounded-2xl border border-primary-200/80 bg-white shadow-sm;
     }
 
     .panel-corporate {
-        @apply overflow-hidden rounded-2xl border border-primary-200/80 bg-white shadow-sm;
+        @apply min-w-0 max-w-full overflow-hidden rounded-2xl border border-primary-200/80 bg-white shadow-sm;
     }
 
     .panel-corporate-header {
-        @apply border-b border-primary-100 bg-primary-50/50 px-5 py-4;
+        @apply border-b border-primary-100 bg-primary-50/50 px-4 py-4 sm:px-5;
+    }
+
+    .datatable-corporate {
+        @apply min-w-0 max-w-full overflow-x-auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .datatable-corporate > div {
+        @apply min-w-0 max-w-full;
     }
 }
 

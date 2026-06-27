@@ -1,5 +1,7 @@
-<div class="relative mx-auto w-full max-w-[90rem]">
-    <nav class="mb-6 flex items-center gap-x-2 text-xs font-medium text-slate-500">
+<div class="relative mx-auto w-full min-w-0 max-w-[90rem] overflow-x-hidden">
+    <div class="pointer-events-none absolute -top-4 left-1/2 h-px w-[min(100%,48rem)] -translate-x-1/2 bg-gradient-to-r from-transparent via-primary-300/40 to-transparent" aria-hidden="true"></div>
+
+    <nav class="mb-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium text-slate-500">
         <a href="{{ route('dashboard') }}" wire:navigate class="rounded px-1.5 py-0.5 hover:bg-slate-200/60">Inicio</a>
         <span class="text-slate-300">/</span>
         <a href="{{ route('admin.users.index') }}" wire:navigate class="rounded px-1.5 py-0.5 hover:bg-slate-200/60">Usuarios</a>
@@ -7,46 +9,36 @@
         <span class="font-semibold text-slate-900">Roles y permisos</span>
     </nav>
 
-    <header class="mb-6">
-        <div class="flex flex-col gap-6 lg:flex-row lg:items-stretch lg:justify-between">
-            <div class="min-w-0 flex-1 border-l-4 border-primary-500 pl-5">
+    <header class="mb-8 space-y-6">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div class="min-w-0 flex-1 border-l-4 border-primary-500 pl-4 sm:pl-5">
                 <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary-600/90">Seguridad</p>
                 <h1 class="mt-2 text-xl font-bold tracking-tight text-slate-900 md:text-2xl">Roles y permisos</h1>
                 <p class="mt-2 max-w-xl text-sm text-slate-600">
                     Define roles del sistema y controla qué puede hacer cada perfil en la plataforma.
                 </p>
             </div>
-            <div class="grid shrink-0 grid-cols-2 gap-3 sm:grid-cols-3 sm:max-w-lg lg:self-center">
-                <div class="card-corporate p-4">
-                    <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Roles</p>
-                    <p class="mt-2 text-3xl font-semibold tabular-nums text-slate-900">{{ $roles->count() }}</p>
-                </div>
-                <div class="card-corporate p-4">
-                    <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Permisos</p>
-                    <p class="mt-2 text-3xl font-semibold tabular-nums text-primary-600">{{ $totalPerms }}</p>
-                </div>
-                <div class="card-corporate col-span-2 p-4 sm:col-span-1">
-                    <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Asignados</p>
-                    <p class="mt-2 text-3xl font-semibold tabular-nums text-emerald-600">{{ $roles->sum('users_count') }}</p>
-                </div>
+            @can('roles.create')
+                <x-ui.create-button wire:click="openCreate" class="w-full justify-center sm:w-auto">
+                    Nuevo rol
+                </x-ui.create-button>
+            @endcan
+        </div>
+        <div class="grid w-full grid-cols-2 gap-3 sm:max-w-lg sm:grid-cols-3">
+            <div class="card-corporate p-4">
+                <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Roles</p>
+                <p class="mt-2 text-2xl font-semibold tabular-nums text-slate-900 sm:text-3xl">{{ $roles->count() }}</p>
+            </div>
+            <div class="card-corporate p-4">
+                <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Permisos</p>
+                <p class="mt-2 text-2xl font-semibold tabular-nums text-primary-600 sm:text-3xl">{{ $totalPerms }}</p>
+            </div>
+            <div class="card-corporate col-span-2 p-4 sm:col-span-1">
+                <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Asignados</p>
+                <p class="mt-2 text-2xl font-semibold tabular-nums text-emerald-600 sm:text-3xl">{{ $roles->sum('users_count') }}</p>
             </div>
         </div>
     </header>
-
-    @can('roles.create')
-        <div class="mb-4 flex justify-end">
-            <button
-                wire:click="openCreate"
-                type="button"
-                class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
-            >
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                Nuevo rol
-            </button>
-        </div>
-    @endcan
 
     <section class="panel-corporate mb-6">
         <div class="panel-corporate-header">
@@ -124,7 +116,7 @@
                         </div>
                     </div>
 
-                    <div class="flex shrink-0 items-center gap-2">
+                    <div class="flex shrink-0 flex-wrap items-center gap-2">
                         @if (! $isSuperAdmin)
                             <button
                                 wire:click="toggleExpand({{ $role->id }})"
@@ -258,11 +250,11 @@
             $isReadOnly = $isSuper || ! auth()->user()->can('roles.edit');
         @endphp
         <div
-            class="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 pt-16 backdrop-blur-sm"
+            class="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 pt-10 backdrop-blur-sm sm:pt-16"
             x-on:keydown.escape.window="$wire.closeModal()"
         >
             <div class="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-slate-200/80">
-                <div class="section-corporate-header flex shrink-0 items-center justify-between px-6 py-4">
+                <div class="section-corporate-header flex shrink-0 items-center justify-between px-4 py-4 sm:px-6">
                     <h3 class="text-lg font-bold text-slate-900">
                         @if (! $selected_id)
                             Nuevo rol
@@ -279,7 +271,7 @@
                     </button>
                 </div>
 
-                <div class="flex-1 space-y-5 overflow-y-auto px-6 py-5">
+                <div class="flex-1 space-y-5 overflow-y-auto px-4 py-5 sm:px-6">
                     <div>
                         <label class="mb-1.5 block text-sm font-medium text-slate-700">
                             Nombre del rol @if (! $isReadOnly)<span class="text-red-500">*</span>@endif
@@ -379,11 +371,11 @@
                     </div>
                 </div>
 
-                <div class="flex shrink-0 justify-end gap-3 border-t border-slate-100 px-6 py-4">
+                <div class="flex shrink-0 flex-col-reverse gap-2 border-t border-slate-100 px-4 py-4 sm:flex-row sm:justify-end sm:gap-3 sm:px-6">
                     <button
                         wire:click="closeModal"
                         type="button"
-                        class="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                        class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 sm:w-auto"
                     >
                         {{ $isReadOnly ? 'Cerrar' : 'Cancelar' }}
                     </button>
@@ -391,7 +383,7 @@
                         <button
                             wire:click="save"
                             type="button"
-                            class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-700"
+                            class="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-700 sm:w-auto"
                         >
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>

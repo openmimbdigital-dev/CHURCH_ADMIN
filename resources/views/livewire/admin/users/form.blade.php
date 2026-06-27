@@ -4,7 +4,7 @@
     $errorClass = 'mt-1.5 text-xs text-red-600';
 @endphp
 
-<div class="relative mx-auto w-full max-w-[90rem]">
+<div class="relative mx-auto w-full min-w-0 max-w-[90rem] overflow-x-hidden">
     <nav class="mb-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium text-slate-500">
         <a href="{{ route('dashboard') }}" wire:navigate class="rounded px-1.5 py-0.5 hover:bg-slate-200/60">Inicio</a>
         <span class="text-slate-300">/</span>
@@ -14,7 +14,7 @@
     </nav>
 
     <header class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div class="min-w-0 flex-1 border-l-4 border-primary-500 pl-5">
+        <div class="min-w-0 flex-1 border-l-4 border-primary-500 pl-4 sm:pl-5">
             <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary-600/90">Usuarios</p>
             <h1 class="mt-2 text-xl font-bold tracking-tight text-slate-900 md:text-2xl">
                 {{ $isEdit ? 'Editar usuario' : 'Crear usuario' }}
@@ -26,7 +26,7 @@
         <a
             href="{{ route('admin.users.index') }}"
             wire:navigate
-            class="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-primary-200/80 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-primary-50/50"
+            class="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-xl border border-primary-200/80 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-primary-50/50 sm:w-auto"
         >
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
@@ -172,7 +172,7 @@
             <a
                 href="{{ route('admin.users.index') }}"
                 wire:navigate
-                class="inline-flex min-h-11 items-center justify-center rounded-xl border border-primary-200/80 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-primary-50/50"
+                class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-primary-200/80 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-primary-50/50 sm:w-auto"
             >
                 Cancelar
             </a>
@@ -180,7 +180,7 @@
                 type="submit"
                 wire:loading.attr="disabled"
                 wire:target="save"
-                class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/30 disabled:opacity-60"
+                class="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/30 disabled:opacity-60 sm:w-auto"
             >
                 <span wire:loading.remove wire:target="save">{{ $isEdit ? 'Guardar cambios' : 'Crear usuario' }}</span>
                 <span wire:loading wire:target="save">Guardando...</span>

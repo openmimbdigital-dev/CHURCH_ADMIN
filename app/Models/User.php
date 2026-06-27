@@ -127,6 +127,31 @@ class User extends Authenticatable
         return $this->churches()->whereKey($churchId)->exists();
     }
 
+    /**
+     * @return array<int>
+     */
+    public function churchZoneIds(): array
+    {
+        $zoneIds = $this->churches()
+            ->pluck('administrative_zone_id')
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($zoneIds->isEmpty() && $this->current_church_id) {
+            $zoneId = Church::query()
+                ->whereKey($this->current_church_id)
+                ->value('administrative_zone_id');
+
+            if ($zoneId) {
+                $zoneIds->push((int) $zoneId);
+            }
+        }
+
+        return $zoneIds->unique()->values()->all();
+    }
+
     public function roleLabelForViewer(?User $viewer = null): ?string
     {
         $viewer ??= auth()->user();

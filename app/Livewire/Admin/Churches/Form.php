@@ -73,6 +73,10 @@ class Form extends Component
         if (! $viewer->isSuperAdmin()) {
             $this->churchForm->business_id = $viewer->business_id;
             $this->loadZones();
+
+            if (! $church && count($this->zones) === 1) {
+                $this->churchForm->administrative_zone_id = $this->zones->first()->id;
+            }
         } elseif ($this->churchForm->business_id) {
             $this->loadZones();
         }
@@ -145,6 +149,7 @@ class Form extends Component
 
     protected function loadZones(): void
     {
+        $viewer = auth()->user();
         $businessId = $this->resolvedBusinessId();
 
         if (! $businessId) {
@@ -153,8 +158,23 @@ class Form extends Component
             return;
         }
 
-        $this->zones = AdministrativeZone::query()
+        $query = AdministrativeZone::query()
             ->where('business_id', $businessId)
+            ->where('is_active', true);
+
+        if (! $viewer->isSuperAdmin() && ! $this->church) {
+            $zoneIds = $viewer->churchZoneIds();
+
+            if ($zoneIds === []) {
+                $this->zones = collect();
+
+                return;
+            }
+
+            $query->whereIn('id', $zoneIds);
+        }
+
+        $this->zones = $query
             ->orderBy('name')
             ->get(['id', 'name']);
     }

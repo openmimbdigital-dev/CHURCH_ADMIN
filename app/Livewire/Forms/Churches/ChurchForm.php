@@ -115,6 +115,14 @@ class ChurchForm extends Form
             ];
         }
 
+        if (! $actor->isSuperAdmin() && ! $church) {
+            $allowedZoneIds = $actor->churchZoneIds();
+
+            if ($allowedZoneIds !== []) {
+                $rules['administrative_zone_id'][] = Rule::in($allowedZoneIds);
+            }
+        }
+
         return $rules;
     }
 
@@ -128,6 +136,7 @@ class ChurchForm extends Form
             'business_id.exists' => 'El negocio seleccionado no es válido.',
             'administrative_zone_id.required' => 'Debes seleccionar una zona administrativa.',
             'administrative_zone_id.exists' => 'La zona seleccionada no es válida para este negocio.',
+            'administrative_zone_id.in' => 'Solo puedes crear iglesias en la zona de tu iglesia asignada.',
             'parent_id.exists' => 'La iglesia madre seleccionada no es válida para esta zona.',
             'parent_id.required' => 'Debes seleccionar una iglesia madre para esta categoría.',
             'name.required' => 'El nombre de la iglesia es obligatorio.',

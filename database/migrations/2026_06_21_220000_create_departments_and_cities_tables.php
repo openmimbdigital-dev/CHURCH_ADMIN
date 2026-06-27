@@ -20,7 +20,7 @@ return new class extends Migration
 
         Schema::create('cities', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('department_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('department_id')->constrained();
             $table->string('name', 100);
             $table->string('code', 10)->nullable()->comment('Código o abreviatura de la ciudad');
             $table->decimal('latitude', 10, 8)->nullable();

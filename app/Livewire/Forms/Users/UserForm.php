@@ -6,6 +6,7 @@ use App\Actions\User\CreateOrUpdateUser;
 use App\Models\Church;
 use App\Models\User;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 use Livewire\Form;
 
 class UserForm extends Form
@@ -19,6 +20,8 @@ class UserForm extends Form
     public string $email = '';
 
     public string $password = '';
+
+    public string $password_confirmation = '';
 
     public ?string $phone_number = null;
 
@@ -43,6 +46,7 @@ class UserForm extends Form
         $this->status = (bool) $user->status;
         $this->business_id = $user->business_id;
         $this->password = '';
+        $this->password_confirmation = '';
 
         $user->load([
             'administrativeZones:id',
@@ -129,10 +133,18 @@ class UserForm extends Form
             ],
         ];
 
+        $securePassword = Password::min(8)
+            ->letters()
+            ->mixedCase()
+            ->numbers()
+            ->symbols();
+
         if ($user) {
-            $rules['password'] = ['nullable', 'string', 'min:8'];
+            $rules['password'] = ['nullable', 'string', 'confirmed', $securePassword];
+            $rules['password_confirmation'] = ['required_with:password'];
         } else {
-            $rules['password'] = ['required', 'string', 'min:8'];
+            $rules['password'] = ['required', 'string', 'confirmed', $securePassword];
+            $rules['password_confirmation'] = ['required'];
         }
 
         if ($actor->isSuperAdmin()) {
@@ -156,7 +168,14 @@ class UserForm extends Form
             'email.email' => 'El correo debe ser válido.',
             'email.unique' => 'Este correo ya está en uso.',
             'password.required' => 'La contraseña es obligatoria.',
+            'password.confirmed' => 'La confirmación de contraseña no coincide.',
             'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'password.letters' => 'La contraseña debe incluir al menos una letra.',
+            'password.mixed' => 'La contraseña debe incluir mayúsculas y minúsculas.',
+            'password.numbers' => 'La contraseña debe incluir al menos un número.',
+            'password.symbols' => 'La contraseña debe incluir al menos un carácter especial.',
+            'password_confirmation.required' => 'Debes confirmar la contraseña.',
+            'password_confirmation.required_with' => 'Debes confirmar la nueva contraseña.',
             'business_id.required' => 'Debes seleccionar un negocio.',
             'business_id.exists' => 'El negocio seleccionado no es válido.',
             'administrative_zone_id.exists' => 'La zona seleccionada no es válida para este negocio.',

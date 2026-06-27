@@ -71,24 +71,62 @@
                     @error('userForm.phone_number') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
                 </div>
 
-                <div>
-                    <label for="password" class="{{ $labelClass }}">
-                        Contraseña
+                <div class="md:col-span-2 grid grid-cols-1 gap-5 md:grid-cols-2">
+                    <div>
+                        <x-ui.password-input
+                            id="password"
+                            wire:model="userForm.password"
+                            :label="'Contraseña'"
+                            :required="! $isEdit"
+                            :optional-hint="$isEdit ? 'opcional' : null"
+                            :placeholder="$isEdit ? 'Dejar en blanco para no cambiar' : 'Contraseña segura'"
+                            autocomplete="new-password"
+                        />
+                        @error('userForm.password') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <x-ui.password-input
+                            id="password_confirmation"
+                            wire:model="userForm.password_confirmation"
+                            label="Confirmar contraseña"
+                            :required="! $isEdit"
+                            :optional-hint="$isEdit ? 'si cambias la contraseña' : null"
+                            placeholder="Repite la contraseña"
+                            autocomplete="new-password"
+                        />
+                        @error('userForm.password_confirmation') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="md:col-span-2 rounded-xl border border-primary-100 bg-primary-50/40 p-4">
+                        <p class="text-sm font-medium text-slate-800">Requisitos de contraseña segura</p>
+                        <p class="mt-1 text-xs leading-relaxed text-slate-600">
+                            La contraseña debe cumplir todos los siguientes criterios:
+                        </p>
+                        <ul class="mt-3 grid grid-cols-1 gap-2 text-xs text-slate-600 sm:grid-cols-2">
+                            <li class="flex items-start gap-2">
+                                <span class="mt-0.5 text-primary-600" aria-hidden="true">•</span>
+                                <span>Mínimo <strong class="font-semibold text-slate-700">8 caracteres</strong></span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="mt-0.5 text-primary-600" aria-hidden="true">•</span>
+                                <span>Al menos una letra <strong class="font-semibold text-slate-700">mayúscula</strong> y una <strong class="font-semibold text-slate-700">minúscula</strong></span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="mt-0.5 text-primary-600" aria-hidden="true">•</span>
+                                <span>Al menos un <strong class="font-semibold text-slate-700">número</strong> (0–9)</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="mt-0.5 text-primary-600" aria-hidden="true">•</span>
+                                <span>Al menos un <strong class="font-semibold text-slate-700">carácter especial</strong> (por ejemplo: <code class="rounded bg-white/80 px-1 py-0.5 text-[11px] text-slate-700">! @ # $ % *</code>)</span>
+                            </li>
+                        </ul>
                         @if ($isEdit)
-                            <span class="font-normal text-slate-400">(opcional)</span>
-                        @else
-                            <span class="text-rose-500">*</span>
+                            <p class="mt-3 text-xs leading-relaxed text-slate-500">
+                                Al editar, deja ambos campos en blanco si no deseas cambiar la contraseña actual.
+                            </p>
                         @endif
-                    </label>
-                    <input
-                        id="password"
-                        type="password"
-                        wire:model="userForm.password"
-                        class="input-corporate"
-                        placeholder="{{ $isEdit ? 'Dejar en blanco para no cambiar' : 'Contraseña segura' }}"
-                        autocomplete="new-password"
-                    >
-                    @error('userForm.password') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
+                    </div>
                 </div>
             </div>
         </section>

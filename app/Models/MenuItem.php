@@ -15,6 +15,7 @@ class MenuItem extends Model
         'name',
         'code',
         'url',
+        'permission',
         'icon',
         'sort_order',
         'is_active',
@@ -31,5 +32,22 @@ class MenuItem extends Model
     public function section(): BelongsTo
     {
         return $this->belongsTo(MenuSection::class, 'menu_section_id');
+    }
+
+    public function requiredPermission(): ?string
+    {
+        return $this->permission ?? config("menu-permissions.{$this->code}");
+    }
+
+    public function isVisibleTo(?User $user = null): bool
+    {
+        $user ??= auth()->user();
+        $permission = $this->requiredPermission();
+
+        if (! $permission || ! $user) {
+            return false;
+        }
+
+        return $user->can($permission);
     }
 }

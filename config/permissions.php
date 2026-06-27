@@ -13,6 +13,16 @@ return [
                 'users.deactivate' => 'Desactivar usuarios',
             ],
         ],
+        'businesses' => [
+            'name' => 'Administrar negocios',
+            'super_admin_only' => true,
+            'permissions' => [
+                'businesses.view' => 'Ver negocios',
+                'businesses.create' => 'Crear negocios',
+                'businesses.edit' => 'Editar negocios',
+                'businesses.delete' => 'Eliminar negocios',
+            ],
+        ],
         'education' => [
             'name' => 'Educación',
             'permissions' => [

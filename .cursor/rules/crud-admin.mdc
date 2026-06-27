@@ -55,7 +55,7 @@ Route::middleware('permission:zones.view')->group(function () {
 });
 ```
 
-Registrar permisos en `RolesAndPermissionsSeeder` y `config/permissions.php`. Actualizar `MenuSeeder` con la URL real.
+Registrar permisos en `RolesAndPermissionsSeeder` y `config/permissions.php`. Actualizar `MenuSeeder` con la URL real y `permission` (ej. `zones.view`) para ocultar el ítem en el menú lateral.
 
 ---
 

@@ -26,6 +26,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'permissions.view', 'permissions.assign',
             'zones.view', 'zones.create', 'zones.edit', 'zones.delete',
             'churches.view', 'churches.create', 'churches.edit', 'churches.delete',
+            'businesses.view', 'businesses.create', 'businesses.edit', 'businesses.delete',
         ])->mapWithKeys(fn ($name) => [
             $name => Permission::firstOrCreate(['name' => $name, 'guard_name' => $guard]),
         ]);

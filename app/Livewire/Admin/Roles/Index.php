@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Roles;
 
+use App\Support\PermissionCatalog;
 use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -85,6 +86,10 @@ class Index extends Component
         }
 
         $this->validate();
+
+        if (! auth()->user()->isSuperAdmin()) {
+            $this->selectedPerms = PermissionCatalog::stripSuperAdminOnlyPermissions($this->selectedPerms);
+        }
 
         if ($this->selected_id) {
             $role = Role::findOrFail($this->selected_id);
@@ -214,10 +219,20 @@ class Index extends Component
             ->orderBy('id')
             ->get();
 
-        $modules = config('permissions.modules', []);
-        $totalPerms = Permission::count();
-        $allPermissions = Permission::orderBy('name')->get();
+        $modules = PermissionCatalog::modulesFor();
+        $assignablePermissionNames = PermissionCatalog::permissionNamesFor();
+        $totalPerms = count($assignablePermissionNames);
+        $allPermissions = Permission::query()
+            ->whereIn('name', $assignablePermissionNames)
+            ->orderBy('name')
+            ->get();
 
-        return view('livewire.admin.roles.index', compact('roles', 'modules', 'totalPerms', 'allPermissions'));
+        return view('livewire.admin.roles.index', compact(
+            'roles',
+            'modules',
+            'totalPerms',
+            'allPermissions',
+            'assignablePermissionNames',
+        ));
     }
 }

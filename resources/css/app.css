@@ -91,6 +91,38 @@
         -webkit-overflow-scrolling: touch;
     }
 
+    .datatable-scroll-top {
+        @apply border-b border-primary-100/80 bg-primary-50/30;
+        height: 14px;
+        scrollbar-width: thin;
+        scrollbar-color: color-mix(in srgb, var(--color-primary-400) 65%, transparent) transparent;
+    }
+
+    .datatable-scroll-top::-webkit-scrollbar {
+        height: 10px;
+    }
+
+    .datatable-scroll-top::-webkit-scrollbar-track {
+        @apply bg-primary-50/50;
+    }
+
+    .datatable-scroll-top::-webkit-scrollbar-thumb {
+        @apply rounded-full bg-primary-300/80;
+    }
+
+    .datatable-scroll-main {
+        @apply p-3 sm:p-4;
+    }
+
+    .datatable-scroll-main [class*='overflow-x-scroll'],
+    .datatable-scroll-main [class*='overflow-x-auto'] {
+        overflow-x: visible !important;
+    }
+
+    .datatable-scroll-main [class*='max-w-screen'] {
+        max-width: none !important;
+    }
+
     .datatable-corporate > div {
         @apply min-w-0 max-w-full;
     }

@@ -14,6 +14,7 @@ Referencias de implementación:
 - Form: `admin/users/form`, `admin/zones/form`, `admin/churches/form`
 - Show: `admin/zones/show`, `admin/churches/show`
 - Componentes: `resources/views/components/ui/`
+- Scroll dual datatable: `resources/views/components/ui/datatable-scroll.blade.php`, `resources/js/datatable-dual-scroll.js`
 
 Paleta corporativa: **primary** (`#0EA5E9`), clases `.section-corporate`, `.panel-corporate`, `.card-corporate`, `.input-corporate`, `.datatable-corporate`.
 
@@ -43,7 +44,7 @@ El padding de página lo aporta `<main class="... overflow-x-hidden p-4 lg:p-6">
 
 - Layout: `html/body { overflow-x: hidden }`, contenedor raíz y `<main>` con `overflow-x-hidden min-w-0`.
 - Contenedores de página: `min-w-0 overflow-x-hidden`.
-- Datatables: scroll **solo** dentro de `.datatable-corporate` (`overflow-x-auto`, `min-w-0`, `max-w-full`), nunca en el body.
+- Datatables: scroll **solo** dentro de `<x-ui.datatable-scroll>` (barra superior + inferior sincronizadas), nunca en el body.
 - Sidebar móvil: drawer `fixed` con `max-w-[85vw]`; cerrado con `-translate-x-full`.
 
 ---
@@ -69,6 +70,16 @@ Usar en headers de index. Color `primary-600`, `min-h-11`.
 ### Eliminar — `<x-ui.delete-action-button>`
 
 Botones icono en datatables; incluir `disabled` + `disabled-reason` si hay dependencias.
+
+### Scroll datatable — `<x-ui.datatable-scroll>`
+
+**Obligatorio** en todo index con datatable Livewire. Ver sección [Datatable — scroll horizontal superior e inferior](#datatable--scroll-horizontal-superior-e-inferior) para markup completo, archivos involucrados y checklist al crear módulos nuevos.
+
+```blade
+<x-ui.datatable-scroll class="p-0">
+    <livewire:admin.{modulo}.datatable-{modulo} />
+</x-ui.datatable-scroll>
+```
 
 ---
 
@@ -100,15 +111,51 @@ Botones icono en datatables; incluir `disabled` + `disabled-reason` si hay depen
 - `grid grid-cols-2 gap-3 sm:grid-cols-3 sm:max-w-lg` (3 métricas; tercera `col-span-2 sm:col-span-1` en móvil si aplica)
 - Números: `text-2xl sm:text-3xl`
 
-### Datatable
+### Datatable — scroll horizontal superior e inferior
+
+**Obligatorio** en todo index con Livewire Datatable. No usar `<div class="datatable-corporate">` directamente.
+
+Envolver el componente Livewire con `<x-ui.datatable-scroll>`:
+
 ```blade
 <section class="panel-corporate">
-    <div class="panel-corporate-header px-4 py-4 sm:px-5">...</div>
-    <div class="datatable-corporate overflow-x-auto p-3 sm:p-4">
-        <livewire:... />
+    <div class="panel-corporate-header px-4 py-4 sm:px-5">
+        <h2 class="font-semibold text-slate-800">Registros</h2>
     </div>
+    <x-ui.datatable-scroll class="p-0">
+        <livewire:admin.{modulo}.datatable-{modulo} />
+    </x-ui.datatable-scroll>
 </section>
 ```
+
+#### Cómo funciona
+
+| Pieza | Ubicación | Rol |
+|-------|-----------|-----|
+| `<x-ui.datatable-scroll>` | `components/ui/datatable-scroll.blade.php` | Contenedor Alpine `dualScroll`: barra superior + área principal |
+| `datatable-dual-scroll.js` | `resources/js/` | Registra Alpine `dualScroll`; importado en `app.js` |
+| `.datatable-scroll-top` | `app.css` | Barra superior (14px); solo visible si hay overflow |
+| `.datatable-scroll-main` | `app.css` | Área con `.datatable-corporate` + padding `p-3 sm:p-4` |
+| CSS override | `app.css` | Anula `overflow-x-scroll` interno del paquete datatable para centralizar el scroll en el contenedor externo |
+
+#### Comportamiento
+
+- Si la tabla es más ancha que el contenedor → aparece barra superior **y** inferior, sincronizadas.
+- Si no hay overflow horizontal → la barra superior se oculta (`hasHorizontalScroll`).
+- Se recalcula al redimensionar, al navegar con Livewire (`livewire:navigated`) y al mutar el DOM (paginación, búsqueda, filtros).
+
+#### Al crear un módulo CRUD nuevo
+
+1. Crear la clase `Datatable{Modulo}` con trait `FormatsDatatableActionsColumn`.
+2. En `index.blade.php`, usar **siempre** `<x-ui.datatable-scroll>` (no repetir markup Alpine manual).
+3. Mantener `panel-corporate` + `panel-corporate-header` como wrapper externo.
+4. No añadir `overflow-x-auto` extra alrededor del livewire; el componente ya lo incluye.
+5. Verificar en **375px** que el scroll ocurre dentro del panel, no en el body.
+
+#### Referencias
+
+- Usuarios: `resources/views/livewire/admin/users/index.blade.php`
+- Zonas, Iglesias, Negocios: mismo patrón en sus `index.blade.php`
 
 ### Acciones en datatable
 - Contenedor: `<x-ui.datatable-actions>` (`flex-nowrap`, botones en fila horizontal)
@@ -173,7 +220,7 @@ Grids de permisos/checkboxes: `grid grid-cols-1 gap-1.5 sm:grid-cols-2`
 | Sidebar | drawer + overlay | drawer + overlay | fijo / colapsable |
 | Header index/show | columna, botones `w-full` | fila | fila |
 | Stats | 2 cols | 2–3 cols | 2–3 cols |
-| Datatable | scroll horizontal | scroll | todas las columnas |
+| Datatable | scroll dual (barra arriba + abajo) | scroll | todas las columnas |
 | Modal | `pt-10`, `max-h-[85vh]` | igual | `max-w-2xl` centrado |
 | Form footer | botones apilados | fila derecha | fila derecha |
 
@@ -193,7 +240,7 @@ Grids de permisos/checkboxes: `grid grid-cols-1 gap-1.5 sm:grid-cols-2`
 - [ ] Contenedor `min-w-0 max-w-[90rem] overflow-x-hidden` (padding en `<main>`, no duplicado)
 - [ ] Header en columna en móvil; botón crear con `w-full sm:w-auto`
 - [ ] `<x-ui.create-button>` para acción crear (no botón custom duplicado)
-- [ ] Datatable en `overflow-x-auto p-3 sm:p-4`
+- [ ] Datatable envuelto en `<x-ui.datatable-scroll>` (no `div.datatable-corporate` suelto)
 - [ ] Form/show: botones `w-full sm:w-auto` y footer `flex-col-reverse sm:flex-row`
 - [ ] Modal: padding y footer responsive
 - [ ] Sidebar: drawer en móvil, `showSidebarLabels()` en partial del menú

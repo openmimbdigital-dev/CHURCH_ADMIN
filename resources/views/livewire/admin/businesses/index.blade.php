@@ -38,8 +38,8 @@
         <div class="panel-corporate-header px-4 py-4 sm:px-5">
             <h2 class="font-semibold text-slate-800">Negocios registrados</h2>
         </div>
-        <div class="datatable-corporate p-3 sm:p-4">
+        <x-ui.datatable-scroll class="p-0">
             <livewire:admin.businesses.datatable-businesses />
-        </div>
+        </x-ui.datatable-scroll>
     </section>
 </div>

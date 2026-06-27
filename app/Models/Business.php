@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\GuardsDeletionWhenReferenced;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,6 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Business extends Model
 {
+    use GuardsDeletionWhenReferenced;
     use HasFactory;
     use SoftDeletes;
 
@@ -57,5 +60,30 @@ class Business extends Model
     {
         return $this->morphToMany(User::class, 'leadable', 'leadables')
             ->withTimestamps();
+    }
+
+    public function scopeVisibleToAuth(Builder $query, ?User $viewer = null): Builder
+    {
+        $viewer ??= auth()->user();
+
+        if ($viewer?->isSuperAdmin()) {
+            return $query;
+        }
+
+        return $query->whereRaw('1 = 0');
+    }
+
+    public function isVisibleToAuthUser(?User $viewer = null): bool
+    {
+        return (bool) ($viewer ?? auth()->user())?->isSuperAdmin();
+    }
+
+    protected function deletionBlockingRelations(): array
+    {
+        return [
+            'users' => 'usuarios',
+            'administrativeZones' => 'zonas administrativas',
+            'churches' => 'iglesias',
+        ];
     }
 }

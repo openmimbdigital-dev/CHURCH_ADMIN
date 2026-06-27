@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\AuthController;
 use App\Livewire\Admin\Dashboard;
+use App\Livewire\Admin\Businesses\Form as AdminBusinessesForm;
 use App\Livewire\Admin\Businesses\Index as AdminBusinessesIndex;
+use App\Livewire\Admin\Businesses\Show as AdminBusinessesShow;
 use App\Livewire\Admin\Churches\Form as AdminChurchesForm;
 use App\Livewire\Admin\Churches\Index as AdminChurchesIndex;
 use App\Livewire\Admin\Churches\Show as AdminChurchesShow;
@@ -41,8 +43,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/roles', AdminRolesIndex::class)->name('admin.roles.index');
     });
 
+    Route::middleware('permission:businesses.create')->group(function () {
+        Route::get('/admin/businesses/create', AdminBusinessesForm::class)->name('admin.businesses.create');
+    });
+
+    Route::middleware('permission:businesses.edit')->group(function () {
+        Route::get('/admin/businesses/{business}/edit', AdminBusinessesForm::class)->name('admin.businesses.edit');
+    });
+
     Route::middleware('permission:businesses.view')->group(function () {
         Route::get('/admin/businesses', AdminBusinessesIndex::class)->name('admin.businesses.index');
+        Route::get('/admin/businesses/{business}', AdminBusinessesShow::class)->name('admin.businesses.show');
     });
 
     Route::middleware('permission:zones.create')->group(function () {

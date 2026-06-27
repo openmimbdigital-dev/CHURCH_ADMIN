@@ -16,6 +16,11 @@
                     Gestión de negocios registrados en la plataforma.
                 </p>
             </div>
+            @can('businesses.create')
+                <x-ui.create-button :href="route('admin.businesses.create')" class="w-full justify-center sm:w-auto">
+                    Crear negocio
+                </x-ui.create-button>
+            @endcan
         </div>
         <div class="grid w-full grid-cols-2 gap-3 sm:max-w-xs">
             <div class="card-corporate p-4">

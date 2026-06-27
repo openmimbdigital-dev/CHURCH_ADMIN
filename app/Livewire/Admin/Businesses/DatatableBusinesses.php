@@ -10,6 +10,7 @@ use Arm092\LivewireDatatables\DateColumn;
 use Arm092\LivewireDatatables\Livewire\LivewireDatatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 
 class DatatableBusinesses extends LivewireDatatable
 {
@@ -19,9 +20,13 @@ class DatatableBusinesses extends LivewireDatatable
 
     public ?int $perPage = 25;
 
+    public int $deleteId = 0;
+
     public function builder(): Builder
     {
-        return Business::query()->orderByDesc('id');
+        return Business::query()
+            ->visibleToAuth()
+            ->orderByDesc('id');
     }
 
     public function getColumns(): Model|array
@@ -73,7 +78,90 @@ class DatatableBusinesses extends LivewireDatatable
             DateColumn::name('created_at')
                 ->label('Registro')
                 ->sortable(),
+
+            Column::callback(['id'], function ($id) {
+                $business = Business::query()->visibleToAuth()->find($id);
+
+                return view('livewire.admin.businesses.actions', [
+                    'id' => $id,
+                    'canView' => auth()->user()?->can('businesses.view') ?? false,
+                    'canEdit' => auth()->user()?->can('businesses.edit') ?? false,
+                    'canDelete' => auth()->user()?->can('businesses.delete') ?? false,
+                    'isDeletable' => $business?->canBeDeleted() ?? false,
+                    'deleteBlockReason' => $business?->deletionBlockedReason(),
+                ]);
+            }, [], 'actions')
+                ->label('Acciones')
+                ->unsortable(),
         ];
+    }
+
+    public function deleteBusiness(int $id): void
+    {
+        if (! auth()->user()->can('businesses.delete')) {
+            LivewireAlert::title('Sin permiso')
+                ->text('No tienes permiso para eliminar negocios.')
+                ->error()
+                ->asToast()
+                ->show();
+
+            return;
+        }
+
+        $this->deleteId = $id;
+
+        LivewireAlert::title('Confirmar eliminación')
+            ->text('¿Estás seguro de querer eliminar este negocio? Esta acción no se puede deshacer.')
+            ->warning()
+            ->withConfirmButton('Eliminar')
+            ->withCancelButton('Cancelar')
+            ->confirmButtonColor('#e11d48')
+            ->cancelButtonColor('#64748b')
+            ->customClass([
+                'popup' => 'swal-church-popup',
+                'title' => 'swal-church-title',
+                'htmlContainer' => 'swal-church-html',
+                'confirmButton' => 'swal-confirm-button',
+                'cancelButton' => 'swal-cancel-button',
+            ])
+            ->onConfirm('confirmed')
+            ->show();
+    }
+
+    public function confirmed(): void
+    {
+        try {
+            $business = Business::query()
+                ->visibleToAuth()
+                ->whereKey($this->deleteId)
+                ->firstOrFail();
+
+            if ($reason = $business->deletionBlockedReason()) {
+                LivewireAlert::title('No se puede eliminar')
+                    ->text($reason)
+                    ->warning()
+                    ->asToast()
+                    ->show();
+
+                return;
+            }
+
+            $business->delete();
+
+            LivewireAlert::title('Negocio eliminado')
+                ->text('El negocio fue eliminado correctamente.')
+                ->success()
+                ->asToast()
+                ->show();
+
+            $this->dispatch('business-deleted');
+        } catch (\Throwable) {
+            LivewireAlert::title('Error')
+                ->text('No se pudo eliminar el negocio.')
+                ->error()
+                ->asToast()
+                ->show();
+        }
     }
 
     public function render()

@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             BusinessSeeder::class,
             AdministrativeZoneSeeder::class,
             ChurchSeeder::class,
+            EventCategoriesSeeder::class,
             MenuSeeder::class,
         ]);
 

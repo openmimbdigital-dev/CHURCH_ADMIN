@@ -56,9 +56,9 @@ class Business extends Model
         return $this->hasMany(Church::class);
     }
 
-    public function eventCategories(): HasMany
+    public function churchEventCategories(): HasMany
     {
-        return $this->hasMany(EventCategory::class);
+        return $this->hasMany(ChurchEventCategory::class);
     }
 
     public function events(): HasMany

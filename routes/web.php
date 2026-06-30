@@ -8,7 +8,10 @@ use App\Livewire\Admin\Businesses\Show as AdminBusinessesShow;
 use App\Livewire\Admin\Churches\Form as AdminChurchesForm;
 use App\Livewire\Admin\Churches\Index as AdminChurchesIndex;
 use App\Livewire\Admin\Churches\Show as AdminChurchesShow;
-use App\Livewire\Admin\Events\Index as AdminEventsIndex;
+use App\Livewire\Admin\Settings\Events\Categories\Form as AdminEventCategoriesForm;
+use App\Livewire\Admin\Settings\Events\Categories\Index as AdminEventCategoriesIndex;
+use App\Livewire\Admin\Settings\Events\Categories\Show as AdminEventCategoriesShow;
+use App\Livewire\Admin\Settings\Events\Index as AdminEventsSettingsIndex;
 use App\Livewire\Admin\Roles\Index as AdminRolesIndex;
 use App\Livewire\Admin\Users\Form as AdminUsersForm;
 use App\Livewire\Admin\Users\Index as AdminUsersIndex;
@@ -86,6 +89,19 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::middleware('permission:settings.event.view')->group(function () {
-        Route::get('/admin/settings/events', AdminEventsIndex::class)->name('admin.settings.events.index');
+        Route::get('/admin/settings/events', AdminEventsSettingsIndex::class)->name('admin.settings.events.index');
+    });
+
+    Route::middleware('permission:settings.event.category.create')->group(function () {
+        Route::get('/admin/settings/events/categories/create', AdminEventCategoriesForm::class)->name('admin.settings.events.categories.create');
+    });
+
+    Route::middleware('permission:settings.event.category.edit')->group(function () {
+        Route::get('/admin/settings/events/categories/{eventCategory}/edit', AdminEventCategoriesForm::class)->name('admin.settings.events.categories.edit');
+    });
+
+    Route::middleware('permission:settings.event.category.view')->group(function () {
+        Route::get('/admin/settings/events/categories', AdminEventCategoriesIndex::class)->name('admin.settings.events.categories');
+        Route::get('/admin/settings/events/categories/{eventCategory}', AdminEventCategoriesShow::class)->name('admin.settings.events.categories.show');
     });
 });

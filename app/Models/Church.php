@@ -120,9 +120,12 @@ class Church extends Model
         return $this->hasMany(Church::class, 'parent_id');
     }
 
-    public function eventCategories(): HasMany
+    public function eventCategories(): BelongsToMany
     {
-        return $this->hasMany(EventCategory::class);
+        return $this->belongsToMany(EventCategory::class)
+            ->using(ChurchEventCategory::class)
+            ->withPivot('business_id')
+            ->withTimestamps();
     }
 
     public function events(): HasMany

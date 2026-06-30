@@ -22,6 +22,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'members.view', 'members.create', 'members.edit', 'members.delete',
             'reports.view', 'reports.export',
             'settings.view', 'settings.edit', 'settings.event.view',
+            'settings.event.category.view', 'settings.event.category.create',
+            'settings.event.category.edit', 'settings.event.category.delete',
             'roles.view', 'roles.create', 'roles.edit', 'roles.delete',
             'permissions.view', 'permissions.assign',
             'zones.view', 'zones.create', 'zones.edit', 'zones.delete',
@@ -41,6 +43,11 @@ class RolesAndPermissionsSeeder extends Seeder
         $maestro = Role::firstOrCreate(['name' => 'Maestro', 'guard_name' => $guard]);
         $coordinadorEducativo = Role::firstOrCreate(['name' => 'Coordinador educativo', 'guard_name' => $guard]);
 
+        $eventCategoryPermissions = [
+            'settings.event.category.view', 'settings.event.category.create',
+            'settings.event.category.edit', 'settings.event.category.delete',
+        ];
+
         $pastorPermissions = $perms->only([
             'users.view', 'users.create', 'users.edit', 'users.delete',
             'education.view', 'education.create', 'education.edit',
@@ -51,6 +58,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'zones.view', 'zones.create', 'zones.edit',
             'churches.view', 'churches.create', 'churches.edit',
             'settings.event.view',
+            ...$eventCategoryPermissions,
         ])->values();
 
         $superAdmin->syncPermissions($perms->values());
@@ -66,6 +74,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'zones.view', 'zones.create', 'zones.edit', 'zones.delete',
             'churches.view', 'churches.create', 'churches.edit', 'churches.delete',
             'settings.event.view',
+            ...$eventCategoryPermissions,
         ])->values());
 
         $pastor->syncPermissions($pastorPermissions);
@@ -74,6 +83,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'users.view', 'users.create', 'users.edit', 'users.delete',
             'permissions.view', 'permissions.assign',
             'settings.event.view',
+            ...$eventCategoryPermissions,
         ])->values());
 
         $asistente->syncPermissions($perms->only([

@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Livewire\Admin\Events;
+namespace App\Livewire\Admin\Settings\Events;
 
-use App\Models\Event;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -20,23 +19,20 @@ class Index extends Component
         $viewer = auth()->user();
 
         if (! $viewer->isSuperAdmin() && ! $viewer->business_id) {
-            abort(403, 'No tienes un negocio asignado para consultar eventos.');
+            abort(403, 'No tienes un negocio asignado.');
         }
 
         if (! $viewer->isSuperAdmin() && ! $viewer->current_church_id) {
-            abort(403, 'Debes seleccionar una iglesia activa para consultar eventos.');
+            abort(403, 'Debes seleccionar una iglesia activa.');
         }
     }
 
     public function render()
     {
-        $query = Event::query()->visibleToAuth();
-
-        $stats = [
-            'total' => (clone $query)->count(),
-            'active' => (clone $query)->where('active', true)->count(),
-        ];
-
-        return view('livewire.admin.events.index', compact('stats'));
+        return view('livewire.admin.settings.events.index', [
+            'sections' => collect(EventSettingsConfig::sections())
+                ->filter(fn (array $section) => auth()->user()->can($section['permission'] ?? 'settings.event.view'))
+                ->all(),
+        ]);
     }
 }

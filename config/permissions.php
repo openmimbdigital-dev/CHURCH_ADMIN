@@ -54,6 +54,10 @@ return [
                 'settings.view' => 'Ver configuración',
                 'settings.edit' => 'Editar configuración',
                 'settings.event.view' => 'Ver configuración de eventos y reuniones',
+                'settings.event.category.view' => 'Ver categorías de eventos',
+                'settings.event.category.create' => 'Crear categorías de eventos',
+                'settings.event.category.edit' => 'Editar categorías de eventos',
+                'settings.event.category.delete' => 'Eliminar categorías de eventos',
             ],
         ],
         'roles' => [

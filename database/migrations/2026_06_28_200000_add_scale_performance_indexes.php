@@ -25,8 +25,10 @@ return new class extends Migration
 
         $this->addIndexIfMissing('administrative_zone_user', ['administrative_zone_id', 'user_id'], 'zone_user_zone_user_idx');
 
-        $this->addIndexIfMissing('event_categories', ['church_id', 'active', 'deleted_at'], 'event_categories_church_active_deleted_idx');
-        $this->addIndexIfMissing('event_categories', ['business_id', 'church_id', 'deleted_at'], 'event_categories_business_church_deleted_idx');
+        $this->addIndexIfMissing('event_categories', ['active', 'deleted_at'], 'event_categories_active_deleted_idx');
+        $this->addIndexIfMissing('event_categories', ['general', 'active', 'deleted_at'], 'event_categories_general_active_deleted_idx');
+
+        $this->addIndexIfMissing('church_event_category', ['business_id', 'church_id', 'event_category_id'], 'cec_business_church_category_idx');
 
         $this->addIndexIfMissing('events', ['church_id', 'date', 'deleted_at'], 'events_church_date_deleted_idx');
         $this->addIndexIfMissing('events', ['church_id', 'active', 'deleted_at'], 'events_church_active_deleted_idx');
@@ -54,8 +56,10 @@ return new class extends Migration
 
         $this->dropIndexIfExists('administrative_zone_user', 'zone_user_zone_user_idx');
 
-        $this->dropIndexIfExists('event_categories', 'event_categories_church_active_deleted_idx');
-        $this->dropIndexIfExists('event_categories', 'event_categories_business_church_deleted_idx');
+        $this->dropIndexIfExists('event_categories', 'event_categories_active_deleted_idx');
+        $this->dropIndexIfExists('event_categories', 'event_categories_general_active_deleted_idx');
+
+        $this->dropIndexIfExists('church_event_category', 'cec_business_church_category_idx');
 
         $this->dropIndexIfExists('events', 'events_church_date_deleted_idx');
         $this->dropIndexIfExists('events', 'events_church_active_deleted_idx');

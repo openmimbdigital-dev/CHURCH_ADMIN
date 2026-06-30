@@ -11,8 +11,7 @@ return new class extends Migration
     {
         Schema::create('event_categories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('business_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('church_id')->constrained()->cascadeOnDelete();
+
             $table->string('name');
             $table->text('description')->nullable();
             $table->enum('type', array_column(EventCategoryType::cases(), 'value'));
@@ -21,13 +20,26 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->index('business_id');
-            $table->index('church_id');
-            $table->index(['church_id', 'active', 'deleted_at']);
-            $table->index(['business_id', 'church_id', 'deleted_at']);
+            $table->index(['active', 'deleted_at']);
+            $table->index(['general', 'active', 'deleted_at']);
             $table->index('name');
             $table->index('type');
             $table->index('active');
+        });
+
+        Schema::create('church_event_category', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('business_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('event_category_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('church_id')->constrained()->cascadeOnDelete();
+            $table->timestamps();
+
+            $table->unique(['event_category_id', 'church_id']);
+            $table->index('business_id');
+            $table->index('church_id');
+            $table->index('event_category_id');
+            $table->index(['business_id', 'church_id']);
+            $table->index(['business_id', 'event_category_id']);
         });
 
         Schema::create('events', function (Blueprint $table) {
@@ -58,6 +70,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('events');
+        Schema::dropIfExists('church_event_category');
         Schema::dropIfExists('event_categories');
     }
 };

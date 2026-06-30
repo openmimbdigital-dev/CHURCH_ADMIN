@@ -21,6 +21,8 @@ return new class extends Migration
 
             $table->index('business_id');
             $table->index('church_id');
+            $table->index(['church_id', 'active', 'deleted_at']);
+            $table->index(['business_id', 'church_id', 'deleted_at']);
             $table->index('name');
             $table->index('type');
             $table->index('active');
@@ -42,6 +44,9 @@ return new class extends Migration
             $table->index('business_id');
             $table->index('church_id');
             $table->index('event_category_id');
+            $table->index(['church_id', 'date', 'deleted_at']);
+            $table->index(['church_id', 'active', 'deleted_at']);
+            $table->index(['business_id', 'church_id', 'deleted_at']);
             $table->index('date');
             $table->index('name');
             $table->index('active');

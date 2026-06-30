@@ -71,26 +71,35 @@ class User extends Authenticatable
             return $query;
         }
 
-        if (! $viewer?->business_id) {
+        if (! $viewer?->business_id || ! $viewer->current_church_id) {
             return $query->whereRaw('1 = 0');
         }
 
-        $query->where('business_id', $viewer->business_id);
+        $query->where('users.business_id', $viewer->business_id);
 
-        $query->whereDoesntHave('roles', fn (Builder $roleQuery) => $roleQuery->where('name', 'superAdmin'));
+        $query->whereIn('users.id', function ($subQuery) use ($viewer) {
+            $subQuery->select('user_id')
+                ->from('church_user')
+                ->where('church_id', $viewer->current_church_id);
+        });
+
+        $query->whereNotIn('users.id', function ($subQuery) {
+            $subQuery->select('model_has_roles.model_id')
+                ->from('model_has_roles')
+                ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
+                ->where('roles.name', 'superAdmin')
+                ->where('model_has_roles.model_type', static::class);
+        });
 
         if (! $viewer->isPresbitero()) {
-            $query->whereDoesntHave('roles', fn (Builder $roleQuery) => $roleQuery->where('name', 'Presbitero'));
+            $query->whereNotIn('users.id', function ($subQuery) {
+                $subQuery->select('model_has_roles.model_id')
+                    ->from('model_has_roles')
+                    ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
+                    ->where('roles.name', 'Presbitero')
+                    ->where('model_has_roles.model_type', static::class);
+            });
         }
-
-        if (! $viewer->current_church_id) {
-            return $query->whereRaw('1 = 0');
-        }
-
-        $query->whereHas('churches', fn (Builder $churchQuery) => $churchQuery->where(
-            'churches.id',
-            $viewer->current_church_id
-        ));
 
         return $query;
     }
@@ -124,7 +133,10 @@ class User extends Authenticatable
 
     public function belongsToChurch(int $churchId): bool
     {
-        return $this->churches()->whereKey($churchId)->exists();
+        return DB::table('church_user')
+            ->where('user_id', $this->id)
+            ->where('church_id', $churchId)
+            ->exists();
     }
 
     /**
@@ -132,8 +144,12 @@ class User extends Authenticatable
      */
     public function churchZoneIds(): array
     {
-        $zoneIds = $this->churches()
-            ->pluck('administrative_zone_id')
+        $zoneIds = DB::table('church_user')
+            ->join('churches', 'churches.id', '=', 'church_user.church_id')
+            ->where('church_user.user_id', $this->id)
+            ->whereNull('churches.deleted_at')
+            ->distinct()
+            ->pluck('churches.administrative_zone_id')
             ->map(fn ($id) => (int) $id)
             ->filter()
             ->unique()

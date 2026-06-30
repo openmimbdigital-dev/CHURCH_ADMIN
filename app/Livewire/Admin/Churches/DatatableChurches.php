@@ -29,6 +29,7 @@ class DatatableChurches extends LivewireDatatable
     {
         return Church::query()
             ->visibleToAuth()
+            ->with(['business:id,name', 'administrativeZone:id,name'])
             ->orderByDesc('id');
     }
 
@@ -112,7 +113,7 @@ class DatatableChurches extends LivewireDatatable
                 ->sortable(),
 
             Column::callback(['id'], function ($id) {
-                $church = Church::query()->visibleToAuth()->find($id);
+                $church = Church::query()->find($id);
 
                 return view('livewire.admin.churches.actions', [
                     'id' => $id,

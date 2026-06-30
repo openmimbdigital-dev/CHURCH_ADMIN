@@ -22,6 +22,9 @@ return new class extends Migration
             $table->string('phone_number')->nullable()->after('email');
             $table->boolean('status')->default(true)->after('password');
             $table->softDeletes();
+
+            $table->index('email');
+            $table->index('status');
         });
     }
 

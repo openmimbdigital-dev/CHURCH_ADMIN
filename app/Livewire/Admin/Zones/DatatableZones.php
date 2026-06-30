@@ -73,15 +73,24 @@ class DatatableZones extends LivewireDatatable
                 ->label('Ciudad'),
 
             Column::callback(['id'], function ($id) {
-                static $counts = [];
+                static $counts = null;
 
-                if (! array_key_exists($id, $counts)) {
-                    $counts[$id] = Church::query()
-                        ->where('administrative_zone_id', $id)
-                        ->count();
+                if ($counts === null) {
+                    $query = Church::query();
+
+                    $viewer = auth()->user();
+                    if ($viewer && ! $viewer->isSuperAdmin() && $viewer->business_id) {
+                        $query->where('business_id', $viewer->business_id);
+                    }
+
+                    $counts = $query
+                        ->selectRaw('administrative_zone_id, COUNT(*) as total')
+                        ->groupBy('administrative_zone_id')
+                        ->pluck('total', 'administrative_zone_id')
+                        ->all();
                 }
 
-                return '<span class="tabular-nums">'.$counts[$id].'</span>';
+                return '<span class="tabular-nums">'.(int) ($counts[$id] ?? 0).'</span>';
             }, [], 'churches_count')
                 ->label('Iglesias')
                 ->unsortable(),
@@ -102,7 +111,7 @@ class DatatableZones extends LivewireDatatable
                 ->sortable(),
 
             Column::callback(['id'], function ($id) {
-                $zone = AdministrativeZone::query()->visibleToAuth()->find($id);
+                $zone = AdministrativeZone::query()->find($id);
 
                 return view('livewire.admin.zones.actions', [
                     'id' => $id,

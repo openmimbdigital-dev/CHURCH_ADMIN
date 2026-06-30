@@ -33,7 +33,8 @@ class DatatableUsers extends LivewireDatatable
     {
         return User::query()
             ->visibleToAuth()
-            ->orderByDesc('id');
+            ->with(['roles:id,name', 'business:id,name'])
+            ->orderByDesc('users.id');
     }
 
     public function getColumns(): Model|array
@@ -73,7 +74,7 @@ class DatatableUsers extends LivewireDatatable
 
 
             Column::callback(['id'], function ($id) {
-                $user = User::query()->visibleToAuth()->find($id);
+                $user = User::query()->with('roles:id,name')->find($id);
                 $role = $user?->roleLabelForViewer();
 
                 return $role
@@ -98,7 +99,7 @@ class DatatableUsers extends LivewireDatatable
                 ->sortable(),
 
             Column::callback(['id'], function ($id) {
-                $user = User::query()->visibleToAuth()->find($id);
+                $user = User::query()->find($id);
 
                 return view('livewire.admin.users.actions', [
                     'id' => $id,

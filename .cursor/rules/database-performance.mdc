@@ -1,0 +1,168 @@
+---
+description: Rendimiento DB y consultas — escala 500+ iglesias y 250k+ usuarios (CHURCH_V1)
+globs: database/migrations/**/*.php,app/Models/**/*.php,app/Livewire/**/*.php,app/Actions/**/*.php
+alwaysApply: true
+---
+
+# Rendimiento de base de datos y consultas — CHURCH_V1
+
+**Leer siempre** antes de crear una migración, un scope, un datatable o cualquier query Eloquent/SQL.
+
+Escala objetivo: **≥ 500 iglesias**, **≥ 500 usuarios por iglesia** (~250k usuarios), millones de filas en pivotes y eventos.
+
+---
+
+## Migraciones
+
+### Índices obligatorios
+
+1. **Toda FK** (`foreignId`, `constrained`) debe tener índice (Laravel lo crea en muchas versiones; verificar).
+2. **Filtros frecuentes**: `business_id`, `church_id`, `deleted_at` (soft delete), `active`/`status`, `date`.
+3. **Índices compuestos** alineados al orden del `WHERE` más común (columna más selectiva primero):
+
+```php
+// Usuarios por negocio + iglesia activa + no eliminados
+$table->index(['business_id', 'current_church_id', 'deleted_at']);
+
+// Iglesias listadas por negocio
+$table->index(['business_id', 'is_active', 'deleted_at']);
+
+// Eventos por iglesia y fecha (calendario)
+$table->index(['church_id', 'date', 'deleted_at']);
+
+// Pivote church_user — listar usuarios de una iglesia
+$table->index(['church_id', 'user_id']);
+```
+
+4. **Pivotes** (`church_user`, `administrative_zone_user`): índice en ambas direcciones de la relación.
+5. **Soft delete**: incluir `deleted_at` en índices compuestos de listados, no solo índice suelto.
+6. **Uniques** con soft delete: usar `Rule::unique()->whereNull('deleted_at')`, no unique global si el registro se reutiliza.
+
+### Evitar
+
+- Índices redundantes que dupliquen el prefijo izquierdo de otro compuesto.
+- `cascadeOnDelete` en tablas con millones de filas hijas sin evaluar impacto.
+- Columnas `text` indexadas; preferir `string` con límite razonable para búsqueda.
+- Migraciones que añaden índices sin nombre explícito en producción (`$table->index([...], 'nombre_idx')`).
+
+### Nueva migración en BD existente
+
+Usar patrón `addIndexIfMissing` (ver `2026_06_28_200000_add_scale_performance_indexes.php`) para no fallar si el índice ya existe.
+
+---
+
+## Consultas Eloquent / SQL
+
+### Paginación y listados
+
+- **Siempre paginar** datatables y APIs (`perPage` 25–50, nunca `->get()` sin límite en admin).
+- `builder()` del datatable: aplicar scopes de visibilidad **una vez** en la query base.
+- **No repetir** `visibleToAuth()` en callbacks por fila; el builder ya filtró.
+- **Eager loading** en el builder para columnas con relaciones:
+
+```php
+User::query()
+    ->visibleToAuth()
+    ->with(['roles:id,name', 'business:id,name'])
+    ->orderByDesc('users.id');
+```
+
+- Conteos en listados livewire-datatables:
+  - **No usar** `withCount()` + columna `churches_count` / `foo_count`: el paquete prefija `tabla.columna` y falla si no es columna física.
+  - **Usar** `Column::callback(['id'], ...)` con caché estática y **una sola query** `GROUP BY` al primer render de la columna (ver `DatatableZones`).
+  - `Column::name()` solo para columnas reales de la tabla del modelo principal.
+
+### Pivotes vs `whereHas`
+
+Preferir subconsulta directa al pivote (usa índice `church_id`):
+
+```php
+// ✅ Mejor en church_user con 250k+ filas
+$query->whereIn('users.id', function ($sub) use ($churchId) {
+    $sub->select('user_id')->from('church_user')->where('church_id', $churchId);
+});
+
+// ❌ Evitar en listados masivos
+$query->whereHas('churches', fn ($q) => $q->where('churches.id', $churchId));
+```
+
+Igual para iglesias del usuario:
+
+```php
+$query->whereIn('churches.id', function ($sub) use ($userId) {
+    $sub->select('church_id')->from('church_user')->where('user_id', $userId);
+});
+```
+
+### Roles (Spatie)
+
+- Excluir roles en listados con `whereNotIn` + subquery a `model_has_roles` + `roles`, no `whereDoesntHave` en bucle.
+- Filtrar por `roles.id` cuando sea posible (cachear IDs de roles estáticos).
+
+### Exists / validaciones puntuales
+
+```php
+DB::table('church_user')
+    ->where('user_id', $userId)
+    ->where('church_id', $churchId)
+    ->exists();
+```
+
+### Stats en Index
+
+```php
+$query = Model::query()->visibleToAuth();
+$stats = [
+    'total' => (clone $query)->count(),
+    'active' => (clone $query)->where('status', true)->count(),
+];
+```
+
+Requiere índice compuesto `(business_id, status, deleted_at)` o equivalente.
+
+### Selección de columnas
+
+- `->get(['id', 'name'])` en selects y relaciones: `with('business:id,name')`.
+- Evitar `SELECT *` en relaciones de tablas anchas (`users`).
+
+### Búsqueda textual
+
+- `LIKE '%texto%'` no usa índice B-tree; en escala usar:
+  - prefijo `LIKE 'texto%'` con índice, o
+  - FULLTEXT en MySQL para campos de búsqueda frecuente, o
+  - motor dedicado (Meilisearch, etc.) si la búsqueda es crítica.
+
+---
+
+## Scoping multi-tenant (negocio / iglesia)
+
+Orden recomendado del `WHERE`:
+
+1. `business_id` (reduce el dataset al tenant)
+2. `church_id` o subquery `church_user`
+3. `deleted_at` (automático con SoftDeletes)
+4. `status` / `active`
+
+Los scopes `visibleToAuth()` deben seguir este orden.
+
+---
+
+## Checklist antes de entregar migración o query
+
+- [ ] ¿Hay índice (simple o compuesto) para cada condición del `WHERE` frecuente?
+- [ ] ¿La query está paginada o limitada?
+- [ ] ¿Evita N+1 (`with`, `withCount`, caché estático por request)?
+- [ ] ¿Usa pivote directo en lugar de `whereHas` anidado?
+- [ ] ¿Soft delete contemplado en índices y reglas `unique`?
+- [ ] ¿Callbacks del datatable no repiten scopes ni hacen query por fila innecesaria?
+- [ ] ¿Probado con `EXPLAIN` en la query más pesada si supera 100ms?
+
+---
+
+## Referencias en el proyecto
+
+- Índices de escala: `database/migrations/2026_06_28_200000_add_scale_performance_indexes.php`
+- Scope usuarios optimizado: `app/Models/User.php` → `scopeVisibleToAuth`
+- Scope iglesias optimizado: `app/Models/Church.php` → `scopeVisibleToAuth`
+- Datatables con eager load: `DatatableUsers`, `DatatableChurches`
+- Conteo agrupado en datatable: `DatatableZones` (callback + `GROUP BY`, compatible con livewire-datatables)

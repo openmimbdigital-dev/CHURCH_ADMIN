@@ -7,6 +7,7 @@ alwaysApply: true
 # CRUD admin — convención CHURCH_V1
 
 Usar **Users** y **Zonas** como referencia. Antes de implementar un CRUD nuevo, leer también:
+- `database-performance.mdc` — **obligatorio** para migraciones e índices; consultas a escala 500+ iglesias / 250k+ usuarios
 - `responsive-ui.mdc` — diseño mobile-first
 - `delete-with-dependencies.mdc` — eliminación con dependencias
 
@@ -121,7 +122,8 @@ public function save(): void
 
 - `Index`: stats, breadcrumb, botón crear (`@can`), embebe `<livewire:admin.{module}.datatable-{module} />`
 - `Datatable*`: extiende `Arm092\LivewireDatatables\Livewire\LivewireDatatable`
-- `builder()`: `Model::query()->visibleToAuth()->orderByDesc('id')`
+- `builder()`: `Model::query()->visibleToAuth()->with(...)->withCount(...)` según columnas — ver `database-performance.mdc`
+- Columnas de conteo/relación en datatables: ver `database-performance.mdc` (no `withCount` ni `Column::name` en alias calculados; usar `callback` + query agrupada)
 - Envolver en `panel-corporate` + `datatable-corporate` + `overflow-x-auto`
 - Columna acciones → `view('livewire.admin.{module}.actions', [...])`
 - Eliminar: **LivewireAlert** con `onConfirm('confirmed')` y clases `swal-church-*`
@@ -166,7 +168,7 @@ Notificaciones: **LivewireAlert** (no `dispatch('swal')` manual). Toasts con `->
 
 1. Permisos en seeder + `config/permissions.php`
 2. Rutas con middleware y orden correcto
-3. Modelo: `$fillable`, `use SoftDeletes`, scopes `visibleToAuth`, trait de eliminación si aplica
+3. Modelo: `$fillable`, `use SoftDeletes`, scopes `visibleToAuth`, trait de eliminación si aplica — ver `database-performance.mdc` para índices y queries
 4. `CreateOrUpdate*` Action
 5. `{Module}Form` con `save()` → Action
 6. Componentes Livewire: Index, Form, Datatable, Show (si aplica)

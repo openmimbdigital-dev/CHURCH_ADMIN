@@ -56,7 +56,11 @@ class Church extends Model
             return $query;
         }
 
-        return $query->whereHas('users', fn (Builder $userQuery) => $userQuery->where('users.id', $viewer->id));
+        return $query->whereIn('churches.id', function ($subQuery) use ($viewer) {
+            $subQuery->select('church_id')
+                ->from('church_user')
+                ->where('user_id', $viewer->id);
+        });
     }
 
     public function isVisibleToAuthUser(?User $viewer = null): bool

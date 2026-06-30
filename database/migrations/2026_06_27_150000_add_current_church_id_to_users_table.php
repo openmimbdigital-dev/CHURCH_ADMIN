@@ -16,6 +16,7 @@ return new class extends Migration
                 ->nullOnDelete();
 
             $table->index('current_church_id');
+            $table->index(['business_id', 'current_church_id', 'deleted_at']);
         });
     }
 

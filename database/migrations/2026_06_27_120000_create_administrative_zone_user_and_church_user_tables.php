@@ -29,6 +29,8 @@ return new class extends Migration
 
             $table->unique(['user_id', 'church_id']);
             $table->index('church_id');
+            $table->index(['church_id', 'user_id']);
+            $table->index('user_id');
             $table->index('current_church');
         });
     }

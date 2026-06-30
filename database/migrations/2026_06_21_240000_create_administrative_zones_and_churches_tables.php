@@ -19,6 +19,7 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index('business_id');
+            $table->index(['business_id', 'is_active', 'deleted_at']);
             $table->index('city_id');
             $table->index('name');
         });
@@ -37,10 +38,10 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index('business_id');
-            $table->index('administrative_zone_id');
-            $table->index('parent_id');
-            $table->index('city_id');
-            $table->index('category');
+            $table->index(['business_id', 'is_active', 'deleted_at']);
+            $table->index(['administrative_zone_id', 'deleted_at']);
+            $table->index(['business_id', 'administrative_zone_id', 'category']);
+            $table->index(['business_id', 'deleted_at']);
         });
 
         Schema::create('leadables', function (Blueprint $table) {

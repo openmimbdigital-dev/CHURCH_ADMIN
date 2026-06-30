@@ -34,6 +34,8 @@ return new class extends Migration
                 ->nullOnDelete();
 
             $table->index('business_id');
+            $table->index(['business_id', 'deleted_at']);
+            $table->index(['business_id', 'status', 'deleted_at']);
         });
     }
 

@@ -18,11 +18,25 @@ class CreateOrUpdateEventCategory
     {
         return DB::transaction(function () use ($data, $category, $actor) {
             $general = $actor->isSuperAdmin() && (bool) ($data['general'] ?? false);
+            $name = trim((string) $data['name']);
+
+            $nameError = EventCategory::nameUniquenessError(
+                $name,
+                $general,
+                $data['church_ids'] ?? [],
+                $category?->id,
+            );
+
+            if ($nameError !== null) {
+                throw ValidationException::withMessages([
+                    'categoryForm.name' => $nameError,
+                ]);
+            }
 
             $eventCategory = EventCategory::updateOrCreate(
                 ['id' => $category?->id],
                 [
-                    'name' => $data['name'],
+                    'name' => $name,
                     'description' => $data['description'] ?? null,
                     'type' => $data['type'],
                     'active' => (bool) ($data['active'] ?? true),
@@ -83,3 +97,4 @@ class CreateOrUpdateEventCategory
         }
     }
 }
+

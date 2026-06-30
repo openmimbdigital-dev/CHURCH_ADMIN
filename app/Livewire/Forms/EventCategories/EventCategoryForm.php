@@ -8,6 +8,7 @@ use App\Models\Church;
 use App\Models\EventCategory;
 use App\Models\User;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Form;
 
 class EventCategoryForm extends Form
@@ -116,8 +117,23 @@ class EventCategoryForm extends Form
 
         $validated = $this->validate($this->rules($category, $actor));
 
-        $validated['general'] = $actor->isSuperAdmin() && $this->general;
-        $validated['church_ids'] = $validated['general'] ? [] : $this->selected_church_ids;
+        $isGeneral = $actor->isSuperAdmin() && $this->general;
+        $nameError = EventCategory::nameUniquenessError(
+            $this->name,
+            $isGeneral,
+            $this->selected_church_ids,
+            $category?->id,
+        );
+
+        if ($nameError !== null) {
+            throw ValidationException::withMessages([
+                'categoryForm.name' => $nameError,
+            ]);
+        }
+
+        $validated['name'] = trim($this->name);
+        $validated['general'] = $isGeneral;
+        $validated['church_ids'] = $isGeneral ? [] : $this->selected_church_ids;
 
         return $validated;
     }
@@ -134,20 +150,10 @@ class EventCategoryForm extends Form
      */
     public function rules(?EventCategory $category, User $actor): array
     {
-        $categoryId = $category?->id;
         $isGeneral = $actor->isSuperAdmin() && $this->general;
 
         $rules = [
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('event_categories', 'name')
-                    ->ignore($categoryId)
-                    ->where(fn ($query) => $query
-                        ->where('general', $isGeneral)
-                        ->whereNull('deleted_at')),
-            ],
+            'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
             'type' => ['required', 'string', Rule::in(array_column(EventCategoryType::cases(), 'value'))],
             'active' => ['boolean'],
@@ -172,7 +178,6 @@ class EventCategoryForm extends Form
     {
         return [
             'name.required' => 'El nombre de la categoría es obligatorio.',
-            'name.unique' => 'Ya existe una categoría con este nombre en el mismo ámbito.',
             'name.max' => 'El nombre no puede superar 255 caracteres.',
             'description.max' => 'La descripción no puede superar 2000 caracteres.',
             'type.required' => 'El tipo de categoría es obligatorio.',

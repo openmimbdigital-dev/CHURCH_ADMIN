@@ -132,6 +132,72 @@ class EventCategory extends Model
         return $this->hasMany(Event::class);
     }
 
+    /**
+     * Valida unicidad del nombre según el ámbito de la categoría.
+     *
+     * @param  array<int, int|string>  $churchIds
+     */
+    public static function nameUniquenessError(
+        string $name,
+        bool $isGeneral,
+        array $churchIds = [],
+        ?int $ignoreId = null,
+    ): ?string {
+        $name = trim($name);
+
+        if ($name === '') {
+            return null;
+        }
+
+        if ($isGeneral) {
+            $exists = static::query()
+                ->where('name', $name)
+                ->when($ignoreId, fn (Builder $query) => $query->where('id', '!=', $ignoreId))
+                ->exists();
+
+            if ($exists) {
+                return 'Ya existe una categoría con este nombre.';
+            }
+
+            return null;
+        }
+
+        $churchIds = collect($churchIds)
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($churchIds === []) {
+            return null;
+        }
+
+        $conflictingChurchIds = ChurchEventCategory::query()
+            ->whereIn('church_id', $churchIds)
+            ->whereHas('eventCategory', function (Builder $query) use ($name, $ignoreId) {
+                $query->where('name', $name)
+                    ->where('general', false)
+                    ->when($ignoreId, fn (Builder $q) => $q->where('id', '!=', $ignoreId));
+            })
+            ->pluck('church_id')
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($conflictingChurchIds === []) {
+            return null;
+        }
+
+        $churchNames = Church::query()
+            ->whereIn('id', $conflictingChurchIds)
+            ->orderBy('name')
+            ->pluck('name')
+            ->implode(', ');
+
+        return "Ya existe una categoría con este nombre en: {$churchNames}.";
+    }
+
     protected function deletionBlockingRelations(): array
     {
         return [

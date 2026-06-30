@@ -14,8 +14,10 @@ return new class extends Migration
             $table->foreignId('business_id')->constrained()->cascadeOnDelete();
             $table->foreignId('church_id')->constrained()->cascadeOnDelete();
             $table->string('name');
+            $table->text('description')->nullable();
             $table->enum('type', array_column(EventCategoryType::cases(), 'value'));
             $table->boolean('active')->default(true);
+            $table->boolean('general')->default(true);
             $table->timestamps();
             $table->softDeletes();
 

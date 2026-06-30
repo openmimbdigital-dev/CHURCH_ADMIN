@@ -21,7 +21,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'education.view', 'education.create', 'education.edit', 'education.delete',
             'members.view', 'members.create', 'members.edit', 'members.delete',
             'reports.view', 'reports.export',
-            'settings.view', 'settings.edit',
+            'settings.view', 'settings.edit', 'settings.event.view',
             'roles.view', 'roles.create', 'roles.edit', 'roles.delete',
             'permissions.view', 'permissions.assign',
             'zones.view', 'zones.create', 'zones.edit', 'zones.delete',
@@ -50,6 +50,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'permissions.view', 'permissions.assign',
             'zones.view', 'zones.create', 'zones.edit',
             'churches.view', 'churches.create', 'churches.edit',
+            'settings.event.view',
         ])->values();
 
         $superAdmin->syncPermissions($perms->values());
@@ -64,6 +65,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'permissions.view', 'permissions.assign',
             'zones.view', 'zones.create', 'zones.edit', 'zones.delete',
             'churches.view', 'churches.create', 'churches.edit', 'churches.delete',
+            'settings.event.view',
         ])->values());
 
         $pastor->syncPermissions($pastorPermissions);
@@ -71,6 +73,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $coPastor->syncPermissions($perms->only([
             'users.view', 'users.create', 'users.edit', 'users.delete',
             'permissions.view', 'permissions.assign',
+            'settings.event.view',
         ])->values());
 
         $asistente->syncPermissions($perms->only([
@@ -87,6 +90,8 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $maestro->syncPermissions($maestroPermissions);
         $coordinadorEducativo->syncPermissions($maestroPermissions);
+
+        Permission::query()->where('name', 'events.view')->delete();
 
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }

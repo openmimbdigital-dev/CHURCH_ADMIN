@@ -75,6 +75,22 @@ class MenuSeeder extends Seeder
                     ],
                 ],
             ],
+            [
+                'name' => 'Configuración',
+                'code' => 'configuration',
+                'icon' => 'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4',
+                'sort_order' => 30,
+                'items' => [
+                    [
+                        'name' => 'Eventos y reuniones',
+                        'code' => 'configuration.events',
+                        'url' => '/admin/settings/events',
+                        'permission' => 'settings.event.view',
+                        'icon' => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+                        'sort_order' => 1,
+                    ],
+                ],
+            ],
         ];
 
         foreach ($sections as $sectionData) {

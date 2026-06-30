@@ -65,13 +65,124 @@ Registrar permisos en `RolesAndPermissionsSeeder` y `config/permissions.php`. Ac
 | Capa | Responsabilidad |
 |------|-----------------|
 | Ruta | `permission:{module}.view\|create\|edit\|delete` |
-| `mount()` del componente | `abort(403)` si falta permiso o negocio |
+| `mount()` del componente | `abort(403)` si falta permiso, negocio o registro ajeno |
 | Blade | `@can('{module}.create')` para botones |
-| Datatable | pasar `canEdit`, `canDelete` a `actions.blade.php` |
+| Datatable | `visibleToAuth()` en `builder()`; validar de nuevo al eliminar |
 
-**Scoping por negocio:**
+---
+
+## Aislamiento multi-tenant — negocio e iglesia (OBLIGATORIO)
+
+Proyecto **comercial**: un usuario **nunca** puede ver, crear, editar ni eliminar registros de otro `business_id` o iglesia a la que no pertenece, aunque adivine la URL.
+
+Referencias: `User`, `Church`, `Churches\Form`, `Churches/Show`, `Users/Form`.
+
+### Tres capas (aplicar siempre en todo CRUD de negocio)
+
+| # | Capa | Qué hace |
+|---|------|----------|
+| 1 | **Ruta** | `middleware('permission:...')` — sin permiso Spatie, no entra |
+| 2 | **Modelo** | `scopeVisibleToAuth()` en listados; `isVisibleToAuthUser()` en registro individual |
+| 3 | **Livewire `mount()`** | `abort(403)` si el registro no es visible para el actor |
+
+### Modelo — implementar en todo módulo con `business_id` y/o iglesia
+
+```php
+public function scopeVisibleToAuth(Builder $query, ?User $viewer = null): Builder
+{
+    $viewer ??= auth()->user();
+    if ($viewer?->isSuperAdmin()) {
+        return $query;
+    }
+    // Filtrar por business_id, church_user, permisos (ej. churches.viewAll), etc.
+}
+
+public function isVisibleToAuthUser(?User $viewer = null): bool
+{
+    $viewer ??= auth()->user();
+    if ($viewer?->isSuperAdmin()) {
+        return true;
+    }
+    // Misma lógica que el scope, pero para un solo registro
+}
+```
+
+- **`superAdmin`**: ve todo.
+- **Resto**: solo su `business_id`; si el módulo es por iglesia, también `church_user` / `current_church_id`.
+- Usar permisos granulares cuando aplique (ej. `churches.viewAll`).
+
+### `mount()` — Index, Form, Show (obligatorio)
+
+```php
+public function mount(?Church $church = null): void
+{
+    $viewer = auth()->user();
+
+    // Contexto mínimo del actor
+    if (! $viewer->isSuperAdmin() && ! $viewer->business_id) {
+        abort(403, 'No tienes un negocio asignado.');
+    }
+
+    if ($church) {
+        if (! $viewer->can('churches.edit')) { // o .view según componente
+            abort(403);
+        }
+        if (! $church->isVisibleToAuthUser()) {
+            abort(403); // bloquea /admin/churches/{id} ajeno
+        }
+        $this->church = $church;
+    } else {
+        if (! $viewer->can('churches.create')) {
+            abort(403);
+        }
+    }
+}
+```
+
+- **Show / Edit**: siempre `isVisibleToAuthUser()` sobre el modelo de ruta.
+- **Index / Datatable**: `visibleToAuth()` en el query; validar `business_id` / iglesia activa en `mount()` si aplica.
+- **Create**: no confiar en input del cliente; fijar `business_id` (e iglesia) desde `auth()->user()` en Form/Action.
+
+### Form + Action — persistencia segura
+
+En `{Module}Form::validateFor()` / `rules()`:
+
+```php
+if (! $actor->isSuperAdmin()) {
+    $this->business_id = $actor->business_id;
+}
+```
+
+En `CreateOrUpdate*::handle()`:
+
+- Asignar `business_id` desde el actor si no es `superAdmin`.
+- Validar que FKs (`church_id`, `administrative_zone_id`, etc.) pertenezcan al mismo negocio.
+- **Nunca** persistir un `business_id` o `church_id` enviado por un usuario sin permiso para ello.
+
+### Datatable — eliminar y acciones
+
+```php
+protected function findAuthorized{Model}(int $id): Model
+{
+    return Model::query()
+        ->visibleToAuth()
+        ->whereKey($id)
+        ->firstOrFail();
+}
+```
+
+En `confirmed()` de eliminación: volver a validar con `findAuthorized*` + `isVisibleToAuthUser()` si aplica.
+
+### Qué NO hacer
+
+- Confiar solo en ocultar botones en Blade.
+- Omitir `isVisibleToAuthUser()` en Form/Show porque «ya hay middleware».
+- Usar `Model::find($id)` sin scope en acciones destructivas.
+- Permitir que usuarios no `superAdmin` elijan `business_id` de otro tenant.
+
+**Scoping por negocio (resumen):**
 - `scopeVisibleToAuth()` e `isVisibleToAuthUser()` en el modelo
-- `superAdmin` ve todo; resto filtra por `business_id`
+- `superAdmin` ve todo; resto filtra por `business_id` (y iglesia según módulo)
 - En formularios: `superAdmin` elige negocio; otros usan `auth()->user()->business_id`
 
 **Soft delete (obligatorio en modelos de negocio):**
@@ -168,14 +279,16 @@ Notificaciones: **LivewireAlert** (no `dispatch('swal')` manual). Toasts con `->
 
 1. Permisos en seeder + `config/permissions.php`
 2. Rutas con middleware y orden correcto
-3. Modelo: `$fillable`, `use SoftDeletes`, scopes `visibleToAuth`, trait de eliminación si aplica — ver `database-performance.mdc` para índices y queries
-4. `CreateOrUpdate*` Action
-5. `{Module}Form` con `save()` → Action
-6. Componentes Livewire: Index, Form, Datatable, Show (si aplica)
-7. Vistas blade con estilos corporativos y responsive
-8. `actions.blade.php` con permisos y botón eliminar condicional
-9. Entrada en `MenuSeeder`
-10. Mensajes de validación en español
+3. Modelo: `$fillable`, `use SoftDeletes`, **`scopeVisibleToAuth` + `isVisibleToAuthUser`** — ver `database-performance.mdc` para índices y queries
+4. **`mount()` con `abort(403)`** en Index, Form y Show (permiso + tenant + `isVisibleToAuthUser` al editar/ver)
+5. `CreateOrUpdate*` Action con `business_id` / iglesia forzados desde el actor
+6. `{Module}Form` con `save()` → Action; reglas `exists`/`unique` acotadas al negocio
+7. Componentes Livewire: Index, Form, Datatable, Show (si aplica)
+8. Datatable: `visibleToAuth()` en `builder()` + `findAuthorized*` al eliminar
+9. Vistas blade con estilos corporativos y responsive
+10. `actions.blade.php` con permisos y botón eliminar condicional
+11. Entrada en `MenuSeeder`
+12. Mensajes de validación en español
 
 ---
 

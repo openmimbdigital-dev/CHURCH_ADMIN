@@ -8,6 +8,7 @@ use App\Livewire\Admin\Businesses\Show as AdminBusinessesShow;
 use App\Livewire\Admin\Churches\Form as AdminChurchesForm;
 use App\Livewire\Admin\Churches\Index as AdminChurchesIndex;
 use App\Livewire\Admin\Churches\Show as AdminChurchesShow;
+use App\Livewire\Admin\Events\Index as AdminEventsIndex;
 use App\Livewire\Admin\Roles\Index as AdminRolesIndex;
 use App\Livewire\Admin\Users\Form as AdminUsersForm;
 use App\Livewire\Admin\Users\Index as AdminUsersIndex;
@@ -82,5 +83,9 @@ Route::middleware('auth')->group(function () {
     Route::middleware('permission:churches.view')->group(function () {
         Route::get('/admin/churches', AdminChurchesIndex::class)->name('admin.churches.index');
         Route::get('/admin/churches/{church}', AdminChurchesShow::class)->name('admin.churches.show');
+    });
+
+    Route::middleware('permission:settings.event.view')->group(function () {
+        Route::get('/admin/settings/events', AdminEventsIndex::class)->name('admin.settings.events.index');
     });
 });

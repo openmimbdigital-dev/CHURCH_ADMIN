@@ -20,6 +20,8 @@ class EventCategory extends Model
         'name',
         'type',
         'active',
+        'general',
+        'description',
     ];
 
     protected function casts(): array
@@ -27,6 +29,7 @@ class EventCategory extends Model
         return [
             'type' => EventCategoryType::class,
             'active' => 'boolean',
+            'general' => 'boolean',
         ];
     }
 

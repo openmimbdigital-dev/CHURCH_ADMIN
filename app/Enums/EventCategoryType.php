@@ -4,20 +4,14 @@ namespace App\Enums;
 
 enum EventCategoryType: string
 {
-    case Culto = 'culto';
-    case Educacion = 'educacion';
-    case Social = 'social';
-    case Administrativo = 'administrativo';
-    case Otro = 'otro';
+    case Periodico = 'periodico';
+    case Eventual = 'eventual';
 
     public function label(): string
     {
         return match ($this) {
-            self::Culto => 'Culto',
-            self::Educacion => 'Educación',
-            self::Social => 'Social',
-            self::Administrativo => 'Administrativo',
-            self::Otro => 'Otro',
+            self::Periodico => 'Periódico',
+            self::Eventual => 'Eventual',
         };
     }
 

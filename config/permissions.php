@@ -53,6 +53,7 @@ return [
             'permissions' => [
                 'settings.view' => 'Ver configuración',
                 'settings.edit' => 'Editar configuración',
+                'settings.event.view' => 'Ver configuración de eventos y reuniones',
             ],
         ],
         'roles' => [
